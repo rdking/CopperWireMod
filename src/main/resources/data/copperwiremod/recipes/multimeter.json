@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "L L",
+    "WCW",
+    "_T_"
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:lightning_rod"
+    },
+    "W": {
+      "item": "copperwiremod:copperwire"
+    },
+    "C": {
+      "item": "minecraft:comparator"
+    },
+    "_": {
+      "tag": "minecraft:wooden_slabs"
+    },
+    "T": {
+      "item": "minecraft:redstone_torch"
+    }
+  },
+  "result": {
+    "item": "copperwiremod:copperwire",
+    "count": 1
+  }
+}

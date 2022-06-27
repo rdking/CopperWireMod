@@ -1,0 +1,5 @@
+{
+  "block.copperwiremod.copperwire": "Copper Wire",
+  "item.copperwiremod.copperwire": "Copper Wire",
+  "block.copperwiremod.copperwire.tooltip": "Use the top, bottom, left, right, or center to toggle connections"
+}

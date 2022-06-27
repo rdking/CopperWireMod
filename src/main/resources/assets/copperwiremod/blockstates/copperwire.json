@@ -1,0 +1,168 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "OR": [
+          {
+            "vertical": false,
+            "hop": false,
+            "north": "side|up",
+            "south": "side|up"
+          },
+          {
+            "vertical": false,
+            "hop": false,
+            "west": "side|up",
+            "east": "side|up"
+          },
+          {
+            "vertical": false,
+            "hop": false,
+            "north": "side|up",
+            "east": "side|up"
+          },
+          {
+            "vertical": false,
+            "hop": false,
+            "south": "side|up",
+            "east": "side|up"
+          },
+          {
+            "vertical": false,
+            "hop": false,
+            "south": "side|up",
+            "west": "side|up"
+          },
+          {
+            "vertical": false,
+            "hop": false,
+            "north": "side|up",
+            "west": "side|up"
+          },
+          {
+            "vertical": false,
+            "hop": false,
+            "north": "side|up",
+            "east": "side|up",
+            "west": "side|up"
+          },
+          {
+            "vertical": false,
+            "hop": false,
+            "south": "side|up",
+            "east": "side|up",
+            "west": "side|up"
+          },
+          {
+            "vertical": false,
+            "hop": false,
+            "north": "side|up",
+            "south": "side|up",
+            "west": "side|up"
+          },
+          {
+            "vertical": false,
+            "hop": false,
+            "north": "side|up",
+            "south": "side|up",
+            "east": "side|up"
+          },
+          {
+            "vertical": false,
+            "hop": false,
+            "north": "side|up",
+            "south": "side|up",
+            "east": "side|up",
+            "west": "side|up"
+          }
+        ]
+      },
+      "apply": {
+        "model": "copperwiremod:block/copperwire_tie"
+      }
+    },
+    {
+      "when": {
+        "vertical": false,
+        "hop": true,
+        "north": "side|up",
+        "south": "side|up",
+        "east": "side|up",
+        "west": "side|up"
+      },
+      "apply": {
+        "model": "copperwiremod:block/copperwire_hop"
+      }
+    },
+    {
+      "when": {
+        "north": "side|up"
+      },
+      "apply": {
+        "model": "copperwiremod:block/copperwire_strip"
+      }
+    },
+    {
+      "when": {
+        "east": "side|up"
+      },
+      "apply": {
+        "model": "copperwiremod:block/copperwire_strip",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "south": "side|up"
+      },
+      "apply": {
+        "model": "copperwiremod:block/copperwire_strip",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "west": "side|up"
+      },
+      "apply": {
+        "model": "copperwiremod:block/copperwire_strip",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north": "up"
+      },
+      "apply": {
+        "model": "copperwiremod:block/copperwire_wall"
+      }
+    },
+    {
+      "when": {
+        "east": "up"
+      },
+      "apply": {
+        "model": "copperwiremod:block/copperwire_wall",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "south": "up"
+      },
+      "apply": {
+        "model": "copperwiremod:block/copperwire_wall",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "west": "up"
+      },
+      "apply": {
+        "model": "copperwiremod:block/copperwire_wall",
+        "y": 270
+      }
+    }
+  ]
+}
