@@ -96,6 +96,7 @@
     },
     {
       "when": {
+        "vertical": false,
         "north": "side|up"
       },
       "apply": {
@@ -104,6 +105,7 @@
     },
     {
       "when": {
+        "vertical": false,
         "east": "side|up"
       },
       "apply": {
@@ -113,6 +115,7 @@
     },
     {
       "when": {
+        "vertical": false,
         "south": "side|up"
       },
       "apply": {
@@ -122,6 +125,7 @@
     },
     {
       "when": {
+        "vertical": false,
         "west": "side|up"
       },
       "apply": {

@@ -1,6 +1,7 @@
 package net.apltd.copperwiremod.block;
 
 import net.apltd.copperwiremod.CopperWireMod;
+import net.apltd.copperwiremod.blockentity.CopperWireEntity;
 import net.apltd.copperwiremod.item.ModItems;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
