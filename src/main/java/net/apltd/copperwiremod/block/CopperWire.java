@@ -2,6 +2,8 @@ package net.apltd.copperwiremod.block;
 
 import net.apltd.copperwiremod.CopperWireMod;
 import net.apltd.copperwiremod.blockentity.CopperWireEntity;
+import net.apltd.copperwiremod.util.CopperPower;
+import net.apltd.copperwiremod.util.RelevantDirMode;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.WireConnection;
@@ -35,7 +37,9 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 @SuppressWarnings("deprecation")
 public class CopperWire extends Block implements BlockEntityProvider, Waterloggable {
@@ -60,7 +64,7 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
     }
 
     public static final String BLOCK_NAME = "copperwire";
-    private static final Logger LOGGER = Logger.getAnonymousLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(BLOCK_NAME);
 
     public CopperWire(Settings settings) {
         super(settings);
@@ -148,33 +152,14 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
         return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
     }
 
-    public int getCopperSignal(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        int retval = 0;
-        Direction opposite = direction.getOpposite();
-        EnumProperty<WireConnection> prop = propForDirection(state.get(VERTICAL) ? direction : opposite);
+    public int getCopperSignal(BlockView world, BlockPos pos, Direction dir, Direction iDir) {
         CopperWireEntity cwTileEntity = getEntity(world, pos);
-
-        if ((prop != null) && (cwTileEntity != null)) {
-            if ((state.get(prop) != WireConnection.NONE)) {
-                retval = cwTileEntity.getPowerOut(direction, opposite);
-            }
-        }
-
-        return retval;
+        return cwTileEntity.getPowerOut(dir, iDir);
     }
 
-    public int getCopperPower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        int retval = 0;
-        EnumProperty<WireConnection> prop = propForDirection(state.get(VERTICAL) ? direction : direction.getOpposite());
+    public int getCopperPower(BlockView world, BlockPos pos, Direction direction) {
         CopperWireEntity cwTileEntity = getEntity(world, pos);
-
-        if ((prop != null) && (cwTileEntity != null)) {
-            if ((state.get(prop) != WireConnection.NONE)) {
-                retval = cwTileEntity.getPowerOut(direction);
-            }
-        }
-
-        return retval;
+        return cwTileEntity.getPowerOut(direction);
     }
 
     @Nullable
@@ -216,7 +201,6 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
                     updateConnectedNeighbors(newState, world, pos);
                     if (newState.get(HOP) && !state.get(HOP)) {
                         CopperWireEntity blockEntity = this.getEntity(world, pos);
-                        Direction powerDir = blockEntity.getPowerDir();
                         blockEntity.clearAll();
                         blockEntity.setHop(true);
                     }
@@ -233,29 +217,29 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
 
     @Override
     public int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction dir) {
-        int retval = 0;
-        if (!isPhantomTesting(world, pos, dir)) {
-            retval = state.getWeakRedstonePower(world, pos, dir);
-        }
-        return retval;
+        Direction oDir = dir.getOpposite();
+        EnumProperty<WireConnection> prop = propForDirection(oDir);
+        return ((prop != null) && state.get(prop).isConnected()/*&& (state.get(prop) == WireConnection.SIDE)*/)
+                ? getWeakRedstonePower(state, world, pos, dir) : 0;
     }
 
     @Override
     public int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction dir) {
         int retval = 0;
-        //if (!isPhantomTesting(world, pos, dir)) {
-            Direction opposite = dir.getOpposite();
-            EnumProperty<WireConnection> prop = propForDirection(opposite);
-            if (prop != null) {
-                WireConnection con = state.get(prop);
-                BlockPos upPos = pos.offset(opposite).offset(Direction.UP);
-                BlockState upState = world.getBlockState(upPos);
-                if ((con == WireConnection.SIDE) || ((con == WireConnection.UP) &&
-                        (upState.isOf(this) || upState.isOf(Blocks.REDSTONE_WIRE)))) {
-                    retval = CPtoRP(getCopperSignal(state, world, pos, dir));
-                }
+        Direction oDir = dir.getOpposite();
+        EnumProperty<WireConnection> prop = propForDirection(oDir);
+
+        if (prop != null) {
+            BlockPos srcPos = getRelevantPosition((World) world, pos, oDir);
+            BlockState srcState = world.getBlockState(srcPos);
+
+            if (state.get(prop).isConnected()) {
+                Direction iDir = getRelevantDirection(srcState, srcPos, state, pos, dir, RelevantDirMode.IGNORE);
+                Direction cDir = getRelevantDirection(srcState, srcPos, state, pos, dir, RelevantDirMode.TARGET);
+                retval = CPtoRP(getCopperSignal(world, pos, cDir, iDir));
             }
-        //}
+        }
+
         return retval;
     }
 
@@ -294,26 +278,6 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
     }
 
     /* ---- Private Methods ---- */
-
-    private boolean isPhantomTesting(BlockView world, BlockPos pos, Direction dir) {
-        boolean retval = false;
-        BlockPos srcPos = pos.offset(dir.getOpposite(), 2);
-        BlockState srcState = world.getBlockState(srcPos);
-
-        if (srcState.isOf(Blocks.REDSTONE_WIRE)) {
-            RedstoneWireBlock src = (RedstoneWireBlock) srcState.getBlock();
-            try {
-                Field wgpf = RedstoneWireBlock.class.getDeclaredField("wiresGivePower");
-                wgpf.setAccessible(true);
-                retval = !wgpf.getBoolean(src);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                //Do Nothing
-            }
-        }
-
-        return retval;
-    }
-
     private Direction getForcedDirection(BlockPos pos, BlockPos otherPos) {
         Direction retval = Direction.fromVector(otherPos.subtract(pos));
         if (retval == null) {
@@ -325,33 +289,31 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
 
     private void update(World world, BlockPos pos, BlockState state, BlockPos changePos) {
         boolean changed = false;
-        if (!world.isClient()) {
-            Direction dir = getForcedDirection(pos, changePos);
-            boolean isConnected = false;
+        boolean isConnected = false;
+        Direction dir = getForcedDirection(pos, changePos);
 
-            if (Direction.Type.VERTICAL.test(dir)) {
-                for (Iterator<Direction> it = Direction.Type.HORIZONTAL.iterator(); it.hasNext(); ) {
-                    Direction vdir = it.next();
-                    EnumProperty<WireConnection> prop = propForDirection(vdir);
-                    isConnected |= state.get(prop) == WireConnection.UP;
-                }
+        if (Direction.Type.VERTICAL.test(dir)) {
+            for (Iterator<Direction> it = Direction.Type.HORIZONTAL.iterator(); it.hasNext(); ) {
+                Direction vdir = it.next();
+                EnumProperty<WireConnection> prop = propForDirection(vdir);
+                isConnected |= state.get(prop) == WireConnection.UP;
             }
-            else {
-                EnumProperty<WireConnection> prop = propForDirection(dir);
-                isConnected = (prop != null) && state.get(prop).isConnected();
-
-                if ((prop != null) && !isWallInDirection(world, dir, pos) &&
-                        (state.get(prop) == WireConnection.UP)) {
-                    state = state.with(prop, state.get(VERTICAL) ? WireConnection.NONE : WireConnection.SIDE);
-                    changed = true;
-                }
-            }
-            BlockState newState = updateConnections(state, world, pos, changePos);
-            changed |= (state != newState);
-            isConnected |= (newState.get(NORTH) != WireConnection.NONE) || (newState.get(EAST) != WireConnection.NONE)
-                    || (newState.get(SOUTH) != WireConnection.NONE) || (newState.get(WEST) != WireConnection.NONE);
-            updatePower(newState, state, world, pos, changed, isConnected);
         }
+        else {
+            EnumProperty<WireConnection> prop = propForDirection(dir);
+            isConnected = (prop != null) && state.get(prop).isConnected();
+
+            if ((prop != null) && !isWallInDirection(world, dir, pos) &&
+                    (state.get(prop) == WireConnection.UP)) {
+                state = state.with(prop, state.get(VERTICAL) ? WireConnection.NONE : WireConnection.SIDE);
+                changed = true;
+            }
+        }
+        BlockState newState = updateConnections(state, world, pos, changePos);
+        changed |= (state != newState);
+        isConnected |= (newState.get(NORTH) != WireConnection.NONE) || (newState.get(EAST) != WireConnection.NONE)
+                || (newState.get(SOUTH) != WireConnection.NONE) || (newState.get(WEST) != WireConnection.NONE);
+        updatePower(newState, state, world, pos, changed, isConnected);
     }
 
     private int CPtoRP(int cp) {
@@ -400,8 +362,8 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
                              boolean changed, boolean isConnected) {
         CopperWireEntity cwTileEntity = getEntity(world, pos);
         BlockState newState = state;
-        LOGGER.fine("*** UpdatePower: Initial @ " + pos.toShortString() +
-                ", Current: " + cwTileEntity.toShortString() + ", Power: " + newState.get(POWER));
+        LOGGER.debug("*** UpdatePower: Initial @ " + pos.toShortString() +
+                ", Current: " + cwTileEntity.toShortString() + ", CopperPower: " + newState.get(POWER));
 
         cwTileEntity.setChanging(true);
 
@@ -409,23 +371,23 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
             for (Iterator<Direction> it = Direction.Type.HORIZONTAL.iterator(); it.hasNext(); ) {
                 Direction dir = it.next();
                 if (state.get(propForDirection(dir)).isConnected()) {
-                    newState = updatePowerInDirection(state, world, pos, dir);
+                    newState = updatePowerInDirection(newState, world, pos, dir);
                 } else {
                     cwTileEntity.reset(dir);
                 }
             }
         }
 
-        int power = CPtoRP(cwTileEntity.getPowerOut());
+        int power = CPtoRP(cwTileEntity.getMaxPowerOut());
         newState = newState.with(POWER, power);
 
         if (changed || (newState != state)) {
-            world.setBlockState(pos, newState, Block.NOTIFY_ALL);
+            world.setBlockState(pos, newState, Block.NOTIFY_LISTENERS);
             changed = true;
         }
 
-        LOGGER.fine("*** UpdatePower: Final @ " + pos.toShortString() +
-                ", Current: " + cwTileEntity.toShortString() + ", Power: " + newState.get(POWER));
+        LOGGER.debug("*** UpdatePower: Final @ " + pos.toShortString() +
+                ", Current: " + cwTileEntity.toShortString() + ", CopperPower: " + newState.get(POWER));
         if (cwTileEntity.isModified()) {
             cwTileEntity.setChanged();
             changed = true;
@@ -451,32 +413,34 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
         }
     }
 
-    private boolean isValueAdjacent(World world, BlockState state, BlockPos pos, BlockPos tgtPos) {
+    private boolean isValueAdjacent(World world, BlockState state, BlockPos pos, BlockPos tgtPos, Direction dir) {
+        boolean retval = true;
         BlockState tgtState = world.getBlockState(tgtPos);
-        Direction dir = Direction.fromVector(tgtPos.subtract(pos));
-        boolean isVertical = state.get(VERTICAL);
-        boolean tgtIsVertical = tgtState.isOf(this) && tgtState.get(VERTICAL);
-        boolean retval;
-        if (Direction.Type.VERTICAL.test(dir) && (isVertical || tgtIsVertical)) {
-            retval = true;
-            for (Iterator<Direction> it = Direction.Type.HORIZONTAL.iterator(); it.hasNext(); ) {
-                Direction vdir = it.next();
-                Direction psDir = getRelevantDirection(state, pos, tgtState, tgtPos, vdir, true, true);
-                Direction ptDir = getRelevantDirection(state, pos, tgtState, tgtPos, vdir, true, false);
-                EnumProperty<WireConnection> prop = propForDirection(vdir);
-                retval &= (state.get(prop) != WireConnection.UP) || (tgtState.get(prop) == WireConnection.UP) ||
-                                (Math.abs(getCopperSignal(state, world, pos, psDir) -
-                                getCopperSignal(tgtState, world, tgtPos, ptDir)) <= 1);
+        CopperWireEntity sEntity = getEntity(world, pos);
+        CopperWireEntity tEntity = getEntity(world, tgtPos);
+
+        if (Direction.Type.VERTICAL.test(dir)) {
+            for (Iterator<Direction> it = Direction.Type.HORIZONTAL.iterator(); it.hasNext();) {
+                Direction hdir = it.next();
+                EnumProperty<WireConnection> prop = propForDirection(hdir);
+                retval &= (state.get(prop) == WireConnection.UP) && isValueAdjacent(world, state, pos, tgtPos, hdir);
             }
         }
-        else {
-            dir = getForcedDirection(pos, tgtPos);
-            Direction oDir = dir.getOpposite();
-            int ps = getCopperSignal(state, world, pos, isVertical ? dir : oDir);
-            int pt = tgtState.isOf(this)
-                    ? getCopperPower(tgtState, world, tgtPos, dir)
-                    : 16 * tgtState.getWeakRedstonePower(world, tgtPos, dir);
-            retval = Math.abs(ps - pt) <= 1;
+        else if (sEntity.changedForDirection(dir)) {
+            Direction sDir = getRelevantDirection(state, pos, tgtState, tgtPos, dir, RelevantDirMode.SOURCE);
+            Direction tDir = getRelevantDirection(state, pos, tgtState, tgtPos, dir, RelevantDirMode.TARGET);
+
+            if (tgtState.isOf(this)) {
+                int sPower = sEntity.getPowerOut(sDir);
+                int tPower = tEntity.getPowerOut(tDir);
+                int delta = sPower - tPower;
+
+                retval = (delta <= 1) && (delta >= 0);
+            } else if (tgtState.isOf(Blocks.REDSTONE_WIRE)) {
+                retval = tgtState.get(POWER) == state.get(POWER);
+            } else {
+                retval = state.get(POWER) == tgtState.getWeakRedstonePower(world, pos, dir);
+            }
         }
 
         return retval;
@@ -488,7 +452,7 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
         BlockState dstState = world.getBlockState(dstPos);
         BlockPos downPos = pos.down();
 
-        if (state.get(VERTICAL) && !isValueAdjacent(world, state, pos, downPos)) {
+        if (state.get(VERTICAL) && !isValueAdjacent(world, state, pos, downPos, Direction.DOWN)) {
             world.updateNeighbor(downPos, this, pos);
         }
 
@@ -503,56 +467,89 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
                 }
                 else {
                     BlockPos srcPos = getRelevantPosition(world, pos, dir);
+                    BlockState srcState = world.getBlockState(srcPos);
 
-                    if (!isValueAdjacent(world, state, pos, srcPos)) {
+                    if ((side == WireConnection.SIDE) && srcState.isSolidBlock(world, srcPos)) {
+                        world.updateNeighbor(srcPos, this, pos);
+                        if (!srcState.emitsRedstonePower()) {
+                            world.updateNeighborsAlways(srcPos, srcState.getBlock());
+                        }
+                    }
+                    else if ((!srcState.isOf(this) && srcState.emitsRedstonePower()) ||
+                            !isValueAdjacent(world, state, pos, srcPos, dir)) {
                         world.updateNeighbor(srcPos, this, pos);
                     }
                 }
             }
         }
 
-        if (updateUp && !isValueAdjacent(world, state, pos, dstPos)) {
+        if (updateUp && !isValueAdjacent(world, state, pos, dstPos, Direction.UP)) {
             world.updateNeighbor(dstPos, this, pos);
         }
     }
 
     private BlockState updatePowerInDirection(BlockState state, World world, BlockPos pos, Direction dir) {
         CopperWireEntity cwTileEntity = getEntity(world, pos);
+        LOGGER.debug("*** UpdatePower@ " + pos.toShortString() + ", Dir: " + dir +
+                ", Current: " + cwTileEntity.toString() + ", Power: " + state.get(POWER));
 
         if (cwTileEntity != null) {
             int oldVal = cwTileEntity.getPowerOut(dir);
-            int newVal = Math.max(0, readPower(state, world, pos, dir) - 1);
-
-            if ((oldVal != newVal)) {
-                cwTileEntity.setPower(dir, newVal);
-                state = state.with(POWER, state.get(HOP) ? 0 : CPtoRP(cwTileEntity.getPowerOut(dir)));
+            CopperPower newVal = readPower(state, world, pos, dir);
+            if (newVal.power > 0) {
+                --newVal.power;
             }
+
+            if ((oldVal != newVal.power)) {
+                cwTileEntity.setPower(dir, newVal);
+                if (cwTileEntity.getUpdated()) {
+                    state = state.with(POWER, CPtoRP(cwTileEntity.getPowerOut(dir)));
+                }
+            }
+            cwTileEntity.clearUpdated();
         }
 
+        LOGGER.debug("*** UpdatePower - Current: " + cwTileEntity.toString() + ", Power: " + state.get(POWER));
         return state;
     }
 
-    private int readPower(BlockState state, World world, BlockPos pos, Direction dir) {
-        int retval = 0;
+    private CopperPower readPower(BlockState state, World world, BlockPos pos, Direction dir) {
+        CopperPower retval = new CopperPower();
         BlockPos tgtPos = getRelevantPosition(world, pos, dir);
         BlockState tgtState = world.getBlockState(tgtPos);
         BlockPos downPos = pos.down();
         BlockState downState = world.getBlockState(downPos);
-        Direction pDir = getRelevantDirection(state, pos, tgtState, tgtPos, dir, true, false);
-        Direction cDir = getRelevantDirection(state, pos, tgtState, tgtPos, dir, false, false);
+        Direction iDir = getRelevantDirection(state, pos, tgtState, tgtPos, dir, RelevantDirMode.IGNORE);
+        Direction cDir = getRelevantDirection(state, pos, tgtState, tgtPos, dir, RelevantDirMode.TARGET);
+        Direction pDir = getRelevantDirection(state, pos, tgtState, tgtPos, dir, RelevantDirMode.POWER);
         EnumProperty<WireConnection> prop = propForDirection(cDir);
 
         if (tgtState.isOf(this)) {
             if (tgtState.get(prop).isConnected()) {
-                retval = getCopperSignal(tgtState, world, tgtPos, pDir);
-            }
-            if (state.get(VERTICAL)) {
-                retval = Math.max(retval, getCopperSignal(downState, world, downPos, pDir));
+                retval.power = getCopperSignal(world, tgtPos, cDir, iDir);
+                retval.sDir = pDir;
             }
         }
-        else {
-            if (!tgtState.isOf(Blocks.REDSTONE_WIRE) || tgtState.get(prop).isConnected())
-            retval = Math.max(retval, tgtState.getWeakRedstonePower(world, tgtPos, dir) * 16);
+        else if (!tgtState.isOf(Blocks.REDSTONE_WIRE) || tgtState.get(prop).isConnected()) {
+            int rPower = tgtState.getWeakRedstonePower(world, tgtPos, dir);
+            if (rPower != state.get(POWER)) {
+                retval.power = Math.max(retval.power, rPower * 16);
+                retval.sDir = pDir;
+                retval.isFromRedstoneWire = tgtState.isOf(Blocks.REDSTONE_WIRE);
+            }
+        }
+
+        if (state.get(VERTICAL)) {
+            iDir = getRelevantDirection(state, pos, downState, downPos, dir, RelevantDirMode.IGNORE);
+            cDir = getRelevantDirection(state, pos, downState, downPos, dir, RelevantDirMode.TARGET);
+            pDir = getRelevantDirection(state, pos, downState, downPos, dir, RelevantDirMode.POWER);
+            int power = Math.max(retval.power, getCopperSignal(world, downPos, cDir, iDir));
+            Direction srcDir = getEntity(world, pos).getPowerSrcDir(dir);
+
+            if ((power > retval.power) || ((pDir == srcDir) && (power == 0))) {
+                retval.power = power;
+                retval.sDir = pDir;
+            }
         }
 
         return retval;
@@ -767,16 +764,30 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
     }
 
     private Direction getRelevantDirection(BlockState state, BlockPos pos, BlockState tgtState, BlockPos tgtPos,
-                                           Direction dir, boolean isPower, boolean isSource) {
-        boolean isVertical = state.get(VERTICAL);
+                                           Direction dir, RelevantDirMode mode) {
+        Direction retval = dir;
+        boolean isVertical = state.isOf(this) && state.get(VERTICAL);
         boolean tgtIsVertical = tgtState.isOf(this) && tgtState.get(VERTICAL);
         boolean tgtIsUp = (pos.getY() - tgtPos.getY() == -1);
         boolean tgtIsDown = (pos.getY() - tgtPos.getY() == 1);
 
         Direction oDir = dir.getOpposite();
-        return isPower
-                ? (isSource ? !(isVertical && (tgtIsUp || tgtIsDown)) : tgtIsDown && (isVertical != tgtIsVertical))
-                    ? oDir : dir
-                : isSource || (tgtIsDown && isVertical) || (tgtIsUp && tgtIsVertical) ? dir : oDir;
+
+        switch (mode) {
+            case IGNORE -> {
+                retval = ((tgtIsUp || tgtIsDown) && tgtIsVertical)
+                        ? tgtIsUp ? Direction.DOWN : Direction.UP
+                        : (tgtIsDown && isVertical) ? dir : oDir;
+            }
+            case POWER -> {
+                retval = ((tgtIsUp || tgtIsDown) && isVertical)
+                        ? tgtIsUp ? Direction.UP : Direction.DOWN
+                        : dir;
+            }
+            case TARGET -> {
+                retval = ((tgtIsDown && isVertical) || (tgtIsUp && tgtIsVertical)) ? dir : oDir;
+            }
+        }
+        return retval;
     }
 }
