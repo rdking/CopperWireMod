@@ -30,7 +30,7 @@ public class CopperWireEntity extends BlockEntity {
 
     //Mode Data
     private boolean hop = false;
-    private boolean vertical = false;
+    private boolean vertical;
 
     //Copy data
     private int cPowerN = 0;
@@ -55,7 +55,6 @@ public class CopperWireEntity extends BlockEntity {
     //Dirty state
     private boolean changing = false;
     private boolean modified = false;
-    private boolean updated = false;
 
     public CopperWireEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.COPPERWIRE_ENTITY, pos, state);
@@ -131,14 +130,6 @@ public class CopperWireEntity extends BlockEntity {
         return retval;
     }
 
-    public boolean getUpdated() {
-        return updated;
-    }
-
-    public void clearUpdated() {
-        updated = false;
-    }
-
     public void setPower(Direction cDir, CopperPower p) {
         setPower(cDir, p.sDir, p.power, p.isFromRedstoneWire);
     }
@@ -154,7 +145,7 @@ public class CopperWireEntity extends BlockEntity {
         boolean stronger = fromRedstoneWire ? CPtoRP(power) > CPtoRP(oldPower) : power > cPower;
 
         if ((sDir == oldDir) || stronger) {
-            updated = (power != cPower) || (sDir != oldDir);
+            boolean updated = (power != cPower) || (sDir != oldDir);
             modified |= updated;
 
             if (updated) {
@@ -233,7 +224,7 @@ public class CopperWireEntity extends BlockEntity {
         return dir == Direction.NORTH ? (powerN != oPowerN) || (srcDirN != oSrcDirN)
                 : dir == Direction.EAST ? (powerE != oPowerE) || (srcDirE != oSrcDirE)
                 : dir == Direction.SOUTH ? (powerS != oPowerS) || (srcDirS != oSrcDirS)
-                : dir == Direction.WEST ? (powerW != oPowerW) || (srcDirW != oSrcDirW) : false;
+                : dir == Direction.WEST && ((powerW != oPowerW) || (srcDirW != oSrcDirW));
     }
 
     public boolean isModified() { return modified; }
