@@ -367,15 +367,14 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
         cwTileEntity.setChanging(true);
 
         if (isConnected) {
-            for (int i=0; i<2; ++i) {
-                for (Direction dir : Direction.Type.HORIZONTAL) {
-                    if (state.get(propForDirection(dir)).isConnected()) {
-                        updatePowerInDirection(state, world, pos, dir);
-                    } else {
-                        cwTileEntity.reset(dir);
-                    }
-                }
-            }
+            resolveDirectedPower(state, world, pos);
+//            for (Direction dir : Direction.Type.HORIZONTAL) {
+//                if (state.get(propForDirection(dir)).isConnected()) {
+//                    updatePowerInDirection(state, world, pos, dir);
+//                } else {
+//                    cwTileEntity.reset(dir);
+//                }
+//            }
         }
 
         int power = CPtoRP(cwTileEntity.getMaxPowerOut());
@@ -383,15 +382,19 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
 
         if (changed || (newState != state)) {
             world.setBlockState(pos, newState, Block.NOTIFY_LISTENERS);
+            changed = true;
         }
 
         LOGGER.debug("*** UpdatePower: Final @ " + pos.toShortString() +
                 ", Current: " + cwTileEntity.toShortString() + ", CopperPower: " + newState.get(POWER));
         if (cwTileEntity.isModified()) {
             cwTileEntity.setChanged();
+            changed = true;
         }
 
-        updateConnectedNeighbors(newState, world, pos);
+        if (changed) {
+            updateConnectedNeighbors(newState, world, pos);
+        }
 
         cwTileEntity.setChanging(false);
 
@@ -484,26 +487,92 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
         }
     }
 
-    private void updatePowerInDirection(BlockState state, World world, BlockPos pos, Direction dir) {
+    private void resolveDirectedPower(BlockState state, World world, BlockPos pos) {
         CopperWireEntity cwTileEntity = getEntity(world, pos);
-        LOGGER.debug("*** UpdatePower@ " + pos.toShortString() + ", Dir: " + dir +
-                ", Current: " + cwTileEntity.toString() + ", Power: " + state.get(POWER));
+        CopperPower[][] powers = new CopperPower[4][];
+        LOGGER.debug("****************************************\n" +
+                "*** UpdatePower@ " + pos.toShortString() + "\n" +
+                "Initial: " + cwTileEntity.toString());
 
-        int oldVal = cwTileEntity.getPowerOut(dir);
-        CopperPower newVal = readPower(state, world, pos, dir);
-        if (newVal.power > 0) {
-            --newVal.power;
+        CopperPower[] pDefault = new CopperPower[2];
+        pDefault[0] = new CopperPower();
+        pDefault[1] = new CopperPower();
+
+        for (Direction dir: Direction.Type.HORIZONTAL) {
+            EnumProperty<WireConnection> prop = propForDirection(dir);
+            switch (dir) {
+                case NORTH -> powers[0] = (state.get(prop).isConnected())
+                        ? readPower(state, world, pos, dir) : pDefault;
+                case EAST -> powers[1] = (state.get(prop).isConnected())
+                        ? readPower(state, world, pos, dir) : pDefault;
+                case SOUTH -> powers[2] = (state.get(prop).isConnected())
+                        ? readPower(state, world, pos, dir) : pDefault;
+                case WEST -> powers[3] = (state.get(prop).isConnected())
+                        ? readPower(state, world, pos, dir) : pDefault;
+            }
         }
 
-        if ((oldVal != newVal.power)) {
-            cwTileEntity.setPower(dir, newVal);
+        Direction psDir = cwTileEntity.getPowerSrcDir(Direction.NORTH);
+        int psIndex = (psDir == Direction.NORTH) ? 0 : (psDir == Direction.EAST) ? 1
+                : (psDir == Direction.SOUTH) ? 2 : 3;
+        CopperPower reserve = null;
+        CopperPower max = powers[0][0];
+
+        for (int i=0; i<4; ++i) {
+            Direction dir = (i == 0) ? Direction.NORTH : (i == 1) ? Direction.EAST
+                    : (i == 2) ? Direction.SOUTH : Direction.WEST;
+
+            int oldPower = cwTileEntity.getPowerOut(dir);
+            if (state.get(VERTICAL)) {
+                if (cwTileEntity.getPowerSrcDir(dir) == Direction.DOWN) {
+                    if (powers[i][0].power <= oldPower) {
+                        powers[i][0] = powers[i][1];
+                    }
+                }
+                else {
+                    if (powers[i][1].power > oldPower) {
+                        powers[i][0] = powers[i][1];
+                    }
+                }
+
+                cwTileEntity.setPower(dir, powers[i][0]);
+            }
+            else if (state.get(HOP)) {
+                if (i >= 2) continue;
+                Direction cDir = dir;
+                Direction sDir = cwTileEntity.getPowerSrcDir(dir);
+                if ((sDir == dir) || (sDir == Direction.DOWN)) {
+                    powers[i][0] = powers[i + ((powers[i+2][0].power > oldPower) ? 2 : 0)][0];
+                }
+                else {
+                    if (powers[i][0].power <= oldPower) {
+                        powers[i][0] = powers[i+2][0];
+                        cDir = dir.getOpposite();
+                    }
+                }
+
+                cwTileEntity.setPower(cDir, powers[i][0]);
+            }
+            else {
+                if (i == psIndex) {
+                    reserve = powers[i][0];
+                }
+                else if (powers[i][0].power > max.power) {
+                    max = powers[i][0];
+                }
+            }
         }
 
-        LOGGER.debug("*** UpdatePower - Current: " + cwTileEntity + ", Power: " + state.get(POWER));
+        if (reserve != null) {
+            powers[0][0] = (max.power > cwTileEntity.getPowerOut(Direction.NORTH)) ? max : reserve;
+            cwTileEntity.setPower(Direction.NORTH, powers[0][0]);
+        }
+
+        LOGGER.debug("** Final: " + cwTileEntity);
     }
 
-    private CopperPower readPower(BlockState state, World world, BlockPos pos, Direction dir) {
-        CopperPower retval = new CopperPower();
+    private CopperPower[] readPower(BlockState state, World world, BlockPos pos, Direction dir) {
+        CopperPower[] retval = new CopperPower[2];
         BlockPos tgtPos = getRelevantPosition(world, pos, dir);
         BlockState tgtState = world.getBlockState(tgtPos);
         BlockPos downPos = pos.down();
@@ -513,32 +582,32 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
         Direction pDir = getRelevantDirection(state, pos, tgtState, tgtPos, dir, RelevantDirMode.POWER);
         EnumProperty<WireConnection> prop = propForDirection(cDir);
 
+        retval[0] = new CopperPower();
+        retval[1] = new CopperPower();
+
         if (tgtState.isOf(this)) {
             if (tgtState.get(prop).isConnected()) {
-                retval.power = getCopperSignal(world, tgtPos, cDir, iDir);
-                retval.sDir = pDir;
+                retval[0].power = getCopperSignal(world, tgtPos, cDir, iDir);
+                retval[0].sDir = pDir;
             }
         }
         else if (!tgtState.isOf(Blocks.REDSTONE_WIRE) || tgtState.get(prop).isConnected()) {
             int rPower = tgtState.getWeakRedstonePower(world, tgtPos, dir);
             if (rPower != state.get(POWER)) {
-                retval.power = Math.max(retval.power, rPower * 16);
-                retval.sDir = pDir;
-                retval.isFromRedstoneWire = tgtState.isOf(Blocks.REDSTONE_WIRE);
+                retval[0].power = Math.max(retval[0].power, rPower * 16);
+                retval[0].sDir = pDir;
+                retval[0].isFromRedstoneWire = tgtState.isOf(Blocks.REDSTONE_WIRE);
             }
         }
 
         if (state.get(VERTICAL)) {
             iDir = getRelevantDirection(state, pos, downState, downPos, dir, RelevantDirMode.IGNORE);
             cDir = getRelevantDirection(state, pos, downState, downPos, dir, RelevantDirMode.TARGET);
-            pDir = getRelevantDirection(state, pos, downState, downPos, dir, RelevantDirMode.POWER);
-            int power = Math.max(retval.power, getCopperSignal(world, downPos, cDir, iDir));
-            Direction srcDir = getEntity(world, pos).getPowerSrcDir(dir);
-
-            if ((power > retval.power) || ((pDir == srcDir) && (power == 0))) {
-                retval.power = power;
-                retval.sDir = pDir;
-            }
+            retval[1].sDir = getRelevantDirection(state, pos, downState, downPos, dir, RelevantDirMode.POWER);
+            retval[1].power = getCopperSignal(world, downPos, cDir, iDir);
+        }
+        else {
+            retval[1] = retval[0];
         }
 
         return retval;
