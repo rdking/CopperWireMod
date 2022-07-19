@@ -217,9 +217,8 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
             BlockState srcState = world.getBlockState(srcPos);
 
             if (state.get(prop).isConnected()) {
-                Direction iDir = getRelevantDirection(srcState, srcPos, state, pos, dir, RelevantDirMode.IGNORE);
                 Direction cDir = getRelevantDirection(srcState, srcPos, state, pos, dir, RelevantDirMode.TARGET);
-                retval = CPtoRP(getCopperSignal(world, pos, cDir, iDir));
+                retval = CPtoRP(getCopperSignal(world, pos, cDir, null));
             }
         }
 
@@ -593,11 +592,9 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
         }
         else if (!tgtState.isOf(Blocks.REDSTONE_WIRE) || tgtState.get(prop).isConnected()) {
             int rPower = tgtState.getWeakRedstonePower(world, tgtPos, dir);
-            if (rPower != state.get(POWER)) {
-                retval[0].power = Math.max(retval[0].power, rPower * 16);
-                retval[0].sDir = pDir;
-                retval[0].isFromRedstoneWire = tgtState.isOf(Blocks.REDSTONE_WIRE);
-            }
+            retval[0].power = Math.max(retval[0].power, rPower * 16);
+            retval[0].sDir = pDir;
+            retval[0].isFromRedstoneWire = tgtState.isOf(Blocks.REDSTONE_WIRE);
         }
 
         if (state.get(VERTICAL)) {
