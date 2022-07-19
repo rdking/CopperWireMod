@@ -367,13 +367,6 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
 
         if (isConnected) {
             resolveDirectedPower(state, world, pos);
-//            for (Direction dir : Direction.Type.HORIZONTAL) {
-//                if (state.get(propForDirection(dir)).isConnected()) {
-//                    updatePowerInDirection(state, world, pos, dir);
-//                } else {
-//                    cwTileEntity.reset(dir);
-//                }
-//            }
         }
 
         int power = CPtoRP(cwTileEntity.getMaxPowerOut());
@@ -524,12 +517,16 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
             int oldPower = cwTileEntity.getPowerOut(dir);
             if (state.get(VERTICAL)) {
                 if (cwTileEntity.getPowerSrcDir(dir) == Direction.DOWN) {
-                    if (powers[i][0].power <= oldPower) {
+                    if (powers[i][0].isFromRedstoneWire
+                            ? CPtoRP(powers[i][0].power) <= CPtoRP(oldPower)
+                            : powers[i][0].power <= oldPower) {
                         powers[i][0] = powers[i][1];
                     }
                 }
                 else {
-                    if (powers[i][1].power > oldPower) {
+                    if (powers[i][1].isFromRedstoneWire
+                            ? CPtoRP(powers[i][1].power) > CPtoRP(oldPower)
+                            : powers[i][1].power > oldPower) {
                         powers[i][0] = powers[i][1];
                     }
                 }
@@ -541,10 +538,15 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
                 Direction cDir = dir;
                 Direction sDir = cwTileEntity.getPowerSrcDir(dir);
                 if ((sDir == dir) || (sDir == Direction.DOWN)) {
-                    powers[i][0] = powers[i + ((powers[i+2][0].power > oldPower) ? 2 : 0)][0];
+                    powers[i][0] = powers[i + ((powers[i+2][0].isFromRedstoneWire
+                            ? CPtoRP(powers[i+2][0].power) <= CPtoRP(oldPower)
+                            : (powers[i+2][0].power > oldPower)) ? 2 : 0)
+                            ][0];
                 }
                 else {
-                    if (powers[i][0].power <= oldPower) {
+                    if (powers[i][0].isFromRedstoneWire
+                            ? CPtoRP(powers[i][0].power) <= CPtoRP(oldPower)
+                            : powers[i][0].power <= oldPower) {
                         powers[i][0] = powers[i+2][0];
                         cDir = dir.getOpposite();
                     }
@@ -556,14 +558,19 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
                 if (i == psIndex) {
                     reserve = powers[i][0];
                 }
-                else if (powers[i][0].power > max.power) {
+                else if (powers[i][0].isFromRedstoneWire
+                        ? CPtoRP(powers[i][0].power) > CPtoRP(max.power)
+                        : powers[i][0].power > max.power) {
                     max = powers[i][0];
                 }
             }
         }
 
         if (reserve != null) {
-            powers[0][0] = ((max.power > reserve.power) && (max.power != cwTileEntity.getPowerOut(Direction.NORTH) - 1))
+            powers[0][0] = (((max.isFromRedstoneWire || reserve.isFromRedstoneWire)
+                    ? (CPtoRP(max.power) > CPtoRP(reserve.power)) &&
+                        (CPtoRP(max.power) != CPtoRP(cwTileEntity.getPowerOut(Direction.NORTH)) - 1)
+                    : (max.power > reserve.power) && (max.power != cwTileEntity.getPowerOut(Direction.NORTH) - 1)))
                     ? max : reserve;
             cwTileEntity.setPower(Direction.NORTH, powers[0][0]);
         }

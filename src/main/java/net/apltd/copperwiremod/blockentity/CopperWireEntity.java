@@ -131,14 +131,14 @@ public class CopperWireEntity extends BlockEntity {
     }
 
     public void setPower(Direction cDir, CopperPower p) {
-        setPower(cDir, p.sDir, p.power > 0 ? p.power - 1 : 0, p.isFromRedstoneWire);
+        setPower(cDir, p.sDir, p.power > 0 ? p.power - 1 : 0);
     }
 
     private int CPtoRP(int cp) {
         return (cp >> 4) + ((cp & 0x0f) > 0 ? 1 : 0);
     }
 
-    private void setPower(Direction cDir, Direction sDir, int power, boolean fromRedstone) {
+    private void setPower(Direction cDir, Direction sDir, int power) {
         int cPower = getPowerOut(cDir);
         int oldPower = getOldPowerOut(cDir);
         Direction oldDir = getPowerSrcDir(cDir);
@@ -329,7 +329,7 @@ public class CopperWireEntity extends BlockEntity {
     }
 
     public void reset(Direction dir) {
-        setPower(dir, Direction.DOWN, 0, false);
+        setPower(dir, Direction.DOWN, 0);
     }
 
     public void clearAll() {
