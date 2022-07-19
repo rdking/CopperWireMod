@@ -131,68 +131,62 @@ public class CopperWireEntity extends BlockEntity {
     }
 
     public void setPower(Direction cDir, CopperPower p) {
-        setPower(cDir, p.sDir, p.power, p.isFromRedstoneWire);
+        setPower(cDir, p.sDir, p.power > 0 ? p.power - 1 : 0, p.isFromRedstoneWire);
     }
 
     private int CPtoRP(int cp) {
         return (cp >> 4) + ((cp & 0x0f) > 0 ? 1 : 0);
     }
 
-    private void setPower(Direction cDir, Direction sDir, int power, boolean fromRedstoneWire) {
+    private void setPower(Direction cDir, Direction sDir, int power, boolean fromRedstone) {
         int cPower = getPowerOut(cDir);
         int oldPower = getOldPowerOut(cDir);
         Direction oldDir = getPowerSrcDir(cDir);
-        boolean stronger = fromRedstoneWire ? CPtoRP(power) > CPtoRP(oldPower) : power > cPower;
+        boolean updated = (power != cPower) || (sDir != oldDir);
+        modified |= updated;
 
-        if ((sDir == oldDir) || stronger) {
-            boolean updated = (power != cPower) || (sDir != oldDir);
-            modified |= updated;
-
-            if (updated) {
-                if (vertical) {
-                    switch (cDir) {
-                        case NORTH -> {
-                            powerN = power;
-                            srcDirN = sDir;
-                        }
-                        case SOUTH -> {
-                            powerS = power;
-                            srcDirS = sDir;
-                        }
-                        case EAST -> {
-                            powerE = power;
-                            srcDirE = sDir;
-                        }
-                        case WEST -> {
-                            powerW = power;
-                            srcDirW = sDir;
-                        }
-                    }
-                } else {
-                    boolean isH = hop && ((cDir == Direction.EAST) || (cDir == Direction.WEST));
-                    if (stronger) {
-                        if (isH) {
-                            srcDirE = sDir;
-                            srcDirW = sDir;
-                        } else {
-                            srcDirN = sDir;
-                            srcDirS = sDir;
-                            if (!hop) {
-                                srcDirE = sDir;
-                                srcDirW = sDir;
-                            }
-                        }
-                    }
-
-                    if (!hop || !isH) {
+        if (updated) {
+            if (vertical) {
+                switch (cDir) {
+                    case NORTH -> {
                         powerN = power;
+                        srcDirN = sDir;
+                    }
+                    case SOUTH -> {
                         powerS = power;
+                        srcDirS = sDir;
                     }
-
-                    if (!hop || isH) {
+                    case EAST -> {
                         powerE = power;
-                        powerW = power;
+                        srcDirE = sDir;
                     }
+                    case WEST -> {
+                        powerW = power;
+                        srcDirW = sDir;
+                    }
+                }
+            } else {
+                boolean isH = hop && ((cDir == Direction.EAST) || (cDir == Direction.WEST));
+                if (isH) {
+                    srcDirE = sDir;
+                    srcDirW = sDir;
+                } else {
+                    srcDirN = sDir;
+                    srcDirS = sDir;
+                    if (!hop) {
+                        srcDirE = sDir;
+                        srcDirW = sDir;
+                    }
+                }
+
+                if (!hop || !isH) {
+                    powerN = power;
+                    powerS = power;
+                }
+
+                if (!hop || isH) {
+                    powerE = power;
+                    powerW = power;
                 }
             }
         }

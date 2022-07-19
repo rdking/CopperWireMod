@@ -563,7 +563,8 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
         }
 
         if (reserve != null) {
-            powers[0][0] = (max.power > cwTileEntity.getPowerOut(Direction.NORTH)) ? max : reserve;
+            powers[0][0] = ((max.power > reserve.power) && (max.power != cwTileEntity.getPowerOut(Direction.NORTH) - 1))
+                    ? max : reserve;
             cwTileEntity.setPower(Direction.NORTH, powers[0][0]);
         }
 
