@@ -427,7 +427,7 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
 
                 retval = (delta <= 1) && (delta >= 0);
             } else if (tgtState.isOf(Blocks.REDSTONE_WIRE)) {
-                retval = tgtState.get(POWER) == state.get(POWER);
+                retval = tgtState.get(POWER).equals(state.get(POWER));
             } else {
                 retval = state.get(POWER) == tgtState.getWeakRedstonePower(world, pos, dir);
             }
@@ -539,10 +539,10 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
                 Direction cDir = dir;
                 Direction sDir = cwTileEntity.getPowerSrcDir(dir);
                 if ((sDir == dir) || (sDir == Direction.DOWN)) {
-                    powers[i][0] = powers[i + ((powers[i+2][0].isFromRedstoneWire
-                            ? CPtoRP(powers[i+2][0].power) <= CPtoRP(oldPower)
-                            : (powers[i+2][0].power > oldPower)) ? 2 : 0)
-                            ][0];
+                    boolean useOpposite = powers[i+2][0].isFromRedstoneWire
+                            ? CPtoRP(powers[i+2][0].power) > CPtoRP(oldPower)
+                            : (powers[i+2][0].power > oldPower);
+                    powers[i][0] = powers[i + (useOpposite ? 2 : 0)][0];
                 }
                 else {
                     if (powers[i][0].isFromRedstoneWire
