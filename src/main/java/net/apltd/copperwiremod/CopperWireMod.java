@@ -2,6 +2,7 @@ package net.apltd.copperwiremod;
 
 import net.apltd.copperwiremod.block.CopperWire;
 import net.apltd.copperwiremod.block.ModBlocks;
+import net.apltd.copperwiremod.block.CopperPowerSource;
 import net.apltd.copperwiremod.blockentity.ModBlockEntities;
 import net.apltd.copperwiremod.item.ModItems;
 import net.fabricmc.api.ModInitializer;
@@ -13,8 +14,9 @@ public class CopperWireMod implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
 
 	public static CopperWire COPPERWIRE = null;
+    public static CopperPowerSource COPPERPOWERSOURCE = null;
 
-	@Override
+    @Override
 	public void onInitialize() {
 		LOGGER.info("Loading CopperWireMod");
 		ModBlocks.registerModBlocks();

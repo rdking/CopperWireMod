@@ -5,10 +5,7 @@ import net.apltd.copperwiremod.blockentity.CopperWireEntity;
 import net.apltd.copperwiremod.item.ModItems;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Material;
+import net.minecraft.block.*;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
@@ -25,11 +22,20 @@ public class ModBlocks {
                     .collidable(false)
                     .strength(0, 1)
                     .nonOpaque()
+                    .luminance((BlockState blockState) -> blockState.get(CopperWire.POWER))
+                    .solidBlock((BlockState state, BlockView world, BlockPos pos) -> false)
+            ), ItemGroup.REDSTONE);
+
+    public static final Block COPPER_POWER_SOURCE = registerBlock(CopperPowerSource.BLOCK_NAME,
+            new CopperPowerSource(FabricBlockSettings.copy(Blocks.REDSTONE_BLOCK)
+                    .solidBlock((BlockState state, BlockView world, BlockPos pos) -> false)
                     .luminance((BlockState blockState) -> {
-                        return blockState.get(CopperWire.POWER);
-                    })
-                    .solidBlock((BlockState state, BlockView world, BlockPos pos) -> {
-                        return false;//true;
+                        int retval = 0;
+                        if (blockState.isOf(CopperWireMod.COPPERPOWERSOURCE)) {
+                            CopperPowerSource block = (CopperPowerSource) blockState.getBlock();
+                            retval = block.getWeakRedstonePower(blockState, null, null, null);
+                        }
+                        return retval;
                     })
             ), ItemGroup.REDSTONE);
 
@@ -44,5 +50,6 @@ public class ModBlocks {
 
     public static void registerModBlocks() {
         CopperWireMod.LOGGER.info("Registering the block: " + CopperWire.BLOCK_NAME);
+        CopperWireMod.LOGGER.info("Registering the block: " + CopperPowerSource.BLOCK_NAME);
     }
 }

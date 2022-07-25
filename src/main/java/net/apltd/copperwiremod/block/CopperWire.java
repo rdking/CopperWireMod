@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 
 
 @SuppressWarnings("deprecation")
-public class CopperWire extends Block implements BlockEntityProvider, Waterloggable {
+public class CopperWire extends Block implements CopperReadyDevice, BlockEntityProvider, Waterloggable {
     public static final EnumProperty<WireConnection> NORTH = RedstoneWireBlock.WIRE_CONNECTION_NORTH;
     public static final EnumProperty<WireConnection> EAST = RedstoneWireBlock.WIRE_CONNECTION_EAST;
     public static final EnumProperty<WireConnection> SOUTH = RedstoneWireBlock.WIRE_CONNECTION_SOUTH;
@@ -593,9 +593,9 @@ public class CopperWire extends Block implements BlockEntityProvider, Waterlogga
         retval[0] = new CopperPower();
         retval[1] = new CopperPower();
 
-        if (tgtState.isOf(this)) {
-            if (tgtState.get(prop).isConnected()) {
-                retval[0].power = getCopperSignal(world, tgtPos, cDir, iDir);
+        if (tgtState.getBlock() instanceof CopperReadyDevice) {
+            if (!tgtState.isOf(this) || tgtState.get(prop).isConnected()) {
+                retval[0].power = ((CopperReadyDevice) tgtState.getBlock()).getCopperSignal(world, tgtPos, cDir, iDir);
                 retval[0].sDir = pDir;
             }
         }
