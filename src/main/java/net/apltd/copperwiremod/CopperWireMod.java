@@ -1,5 +1,6 @@
 package net.apltd.copperwiremod;
 
+import net.apltd.copperwiremod.block.CopperPowerMeter;
 import net.apltd.copperwiremod.block.CopperWire;
 import net.apltd.copperwiremod.block.ModBlocks;
 import net.apltd.copperwiremod.block.CopperPowerSource;
@@ -15,6 +16,7 @@ public class CopperWireMod implements ModInitializer {
 
 	public static CopperWire COPPERWIRE = null;
     public static CopperPowerSource COPPERPOWERSOURCE = null;
+	public static CopperPowerMeter COPPERPOWERMETER = null;
 
     @Override
 	public void onInitialize() {

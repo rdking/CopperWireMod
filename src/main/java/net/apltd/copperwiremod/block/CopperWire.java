@@ -441,8 +441,10 @@ public class CopperWire extends Block implements CopperReadyDevice, BlockEntityP
         BlockPos dstPos = pos.up();
         BlockState dstState = world.getBlockState(dstPos);
         BlockPos downPos = pos.down();
+        BlockState downState = world.getBlockState(downPos);
 
-        if (state.get(VERTICAL) && !isValueAdjacent(world, state, pos, downPos, Direction.DOWN)) {
+        if (state.get(VERTICAL) && (downState.isOf(CopperWireMod.COPPERPOWERMETER) ||
+                !isValueAdjacent(world, state, pos, downPos, Direction.DOWN))) {
             world.updateNeighbor(downPos, this, pos);
         }
 
@@ -472,10 +474,21 @@ public class CopperWire extends Block implements CopperReadyDevice, BlockEntityP
                         world.updateNeighbor(srcPos, this, pos);
                     }
                 }
+
+                if (state.get(VERTICAL)) {
+                    BlockPos sPos = pos.offset(dir);
+                    BlockState sState = world.getBlockState(sPos);
+
+                    if (sState.isOf(CopperWireMod.COPPERPOWERMETER)) {
+                        world.updateNeighbor(sPos, this, pos);
+                    }
+                }
             }
+
         }
 
-        if (updateUp && !isValueAdjacent(world, state, pos, dstPos, Direction.UP)) {
+        if (dstState.isOf(CopperWireMod.COPPERPOWERMETER) ||
+                (updateUp && !isValueAdjacent(world, state, pos, dstPos, Direction.UP))) {
             world.updateNeighbor(dstPos, this, pos);
         }
     }
@@ -746,7 +759,7 @@ public class CopperWire extends Block implements CopperReadyDevice, BlockEntityP
         };
     }
 
-    private EnumProperty<WireConnection> propForDirection(Direction dir) {
+    public static EnumProperty<WireConnection> propForDirection(Direction dir) {
         return switch (dir) {
             case NORTH -> NORTH;
             case EAST -> EAST;

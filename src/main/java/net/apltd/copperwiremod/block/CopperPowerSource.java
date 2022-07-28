@@ -83,7 +83,7 @@ public class CopperPowerSource extends Block implements CopperReadyDevice{
                 }
                 state = state.with(CPOWER, power);
                 world.setBlockState(pos, state, Block.NOTIFY_LISTENERS);
-                world.updateNeighborsAlways(pos, this);
+                world. updateNeighborsAlways(pos, this);
             }
         }
         return retval;

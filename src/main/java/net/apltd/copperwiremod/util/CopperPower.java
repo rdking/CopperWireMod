@@ -9,6 +9,6 @@ public class CopperPower {
 
     @Override
     public String toString() {
-        return "CopperPower{power=" + power + ", sDir=" + sDir + "}";
+        return "CopperPower{power=" + power + ", sDir=" + sDir + ", fromRedstone=" + isFromRedstoneWire + "}";
     }
 }

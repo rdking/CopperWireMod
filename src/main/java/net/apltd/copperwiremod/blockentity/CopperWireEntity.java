@@ -107,7 +107,7 @@ public class CopperWireEntity extends BlockEntity {
         return retval;
     }
 
-    private int getOldPowerOut(Direction dir) {
+    public int getOldPowerOut(Direction dir) {
         return hop
                 ? (dir == Direction.NORTH) || (dir == Direction.SOUTH)
                 ? Math.max(oPowerN, oPowerS)
@@ -117,6 +117,17 @@ public class CopperWireEntity extends BlockEntity {
                 : dir == Direction.EAST ? oPowerE
                 : dir == Direction.SOUTH ? oPowerS : oPowerW
                 : Math.max(oPowerN, Math.max(oPowerE, Math.max(oPowerS, oPowerW)));
+    }
+
+    public Direction getOldPowerSrcDir(Direction dir) {
+        Direction retval = null;
+        switch (dir) {
+            case NORTH -> retval = oSrcDirN;
+            case EAST -> retval = oSrcDirE;
+            case SOUTH -> retval = oSrcDirS;
+            case WEST -> retval = oSrcDirW;
+        }
+        return retval;
     }
 
     public Direction getPowerSrcDir(Direction dir) {

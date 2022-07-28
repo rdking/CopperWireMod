@@ -20,6 +20,9 @@
   "entrypoints": {
     "main": [
       "net.apltd.copperwiremod.CopperWireMod"
+    ],
+    "client": [
+      "net.apltd.copperwiremod.CopperWireModClient"
     ]
   },
   "mixins": [

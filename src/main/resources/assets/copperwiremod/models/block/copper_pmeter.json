@@ -1,33 +1,25 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
-		"1": "block/redstone_block",
+		"1": "minecraft:block/red_stained_glass",
 		"3": "copperwiremod:block/copperwire",
-		"particle": "block/redstone_block"
+		"particle": "minecraft:block/red_stained_glass"
 	},
 	"elements": [
 		{
 			"from": [1, 1, 1],
-			"to": [15, 15, 2],
+			"to": [15, 2, 15],
 			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8, 8]},
 			"faces": {
-				"north": {"uv": [0, 0, 16, 16], "texture": "#1"}
+				"down": {"uv": [0, 0, 16, 16], "rotation": 270, "texture": "#1"}
 			}
 		},
 		{
-			"from": [1, 1, 14],
+			"from": [1, 14, 1],
 			"to": [15, 15, 15],
 			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8, 8]},
 			"faces": {
-				"south": {"uv": [0, 0, 16, 16], "texture": "#1"}
-			}
-		},
-		{
-			"from": [14, 1, 1],
-			"to": [15, 15, 15],
-			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8, 8]},
-			"faces": {
-				"east": {"uv": [0, 0, 16, 16], "texture": "#1"}
+				"up": {"uv": [0, 0, 16, 16], "rotation": 270, "texture": "#1"}
 			}
 		},
 		{
@@ -39,19 +31,27 @@
 			}
 		},
 		{
-			"from": [1, 14, 1],
+			"from": [14, 1, 1],
 			"to": [15, 15, 15],
-			"rotation": {"angle": 0, "axis": "z", "origin": [8, 8, 8]},
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8, 8]},
 			"faces": {
-				"up": {"uv": [0, 0, 16, 16], "rotation": 270, "texture": "#1"}
+				"east": {"uv": [0, 0, 16, 16], "texture": "#1"}
+			}
+		},
+		{
+			"from": [1, 1, 14],
+			"to": [15, 15, 15],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8, 8]},
+			"faces": {
+				"south": {"uv": [0, 0, 16, 16], "texture": "#1"}
 			}
 		},
 		{
 			"from": [1, 1, 1],
-			"to": [15, 2, 15],
-			"rotation": {"angle": 0, "axis": "z", "origin": [8, 8, 8]},
+			"to": [15, 15, 2],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8, 8]},
 			"faces": {
-				"down": {"uv": [0, 0, 16, 16], "rotation": 270, "texture": "#1"}
+				"north": {"uv": [0, 0, 16, 16], "texture": "#1"}
 			}
 		},
 		{
@@ -227,7 +227,7 @@
 		{
 			"from": [7, 6, 7],
 			"to": [9, 10, 9],
-			"rotation": {"angle": 0, "axis": "z", "origin": [8, 8, 8]},
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8, 8]},
 			"faces": {
 				"north": {"uv": [0, 0, 4, 2], "rotation": 90, "texture": "#1"},
 				"east": {"uv": [0, 0, 4, 2], "rotation": 270, "texture": "#1"},
