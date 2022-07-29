@@ -1,10 +1,7 @@
 package net.apltd.copperwiremod.block;
 
 import net.apltd.copperwiremod.CopperWireMod;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.LeverBlock;
+import net.minecraft.block.*;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -101,6 +98,20 @@ public class CopperPowerMeter extends Block {
                                 .getCopperSignal(world, dPos, dDir, null));
                     }
                     else {
+                        if (Direction.Type.VERTICAL.test(dir) && dState.isOf(Blocks.REDSTONE_WIRE)) {
+                            if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_NORTH).isConnected()) {
+                                dir = Direction.NORTH;
+                            }
+                            else if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_EAST).isConnected()) {
+                                dir = Direction.EAST;
+                            }
+                            else if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_SOUTH).isConnected()) {
+                                dir = Direction.SOUTH;
+                            }
+                            else if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_WEST).isConnected()) {
+                                dir = Direction.WEST;
+                            }
+                        }
                         max = Math.max(max, dState.getWeakRedstonePower(world, dPos, dir) * 16);
                     }
                 }
@@ -114,6 +125,20 @@ public class CopperPowerMeter extends Block {
                                 .getCopperSignal(world, dPos, dDir, null)));
                     }
                     else {
+                        if (Direction.Type.VERTICAL.test(dir) && dState.isOf(Blocks.REDSTONE_WIRE)) {
+                            if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_NORTH).isConnected()) {
+                                dir = Direction.NORTH;
+                            }
+                            else if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_EAST).isConnected()) {
+                                dir = Direction.EAST;
+                            }
+                            else if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_SOUTH).isConnected()) {
+                                dir = Direction.SOUTH;
+                            }
+                            else if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_WEST).isConnected()) {
+                                dir = Direction.WEST;
+                            }
+                        }
                         max = Math.max(max, dState.getWeakRedstonePower(world, dPos, dir));
                     }
                 }
