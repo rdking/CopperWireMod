@@ -72,7 +72,7 @@ public class CopperPowerSource extends Block implements CopperReadyDevice{
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         ActionResult retval = ActionResult.FAIL;
-        if (!world.isClient) {
+        if (!world.isClient && (hand == Hand.MAIN_HAND)) {
             if (!player.getAbilities().allowModifyWorld) {
                 retval = ActionResult.PASS;
             } else if (hit.getType() == HitResult.Type.BLOCK) {

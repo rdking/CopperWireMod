@@ -14,6 +14,7 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
@@ -27,6 +28,7 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
@@ -40,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 
 @SuppressWarnings("deprecation")
-public class CopperWire extends Block implements CopperReadyDevice, BlockEntityProvider, Waterloggable {
+public class CopperWire extends AbstractRedstoneGateBlock implements CopperReadyDevice, BlockEntityProvider, Waterloggable {
     public static final EnumProperty<WireConnection> NORTH = RedstoneWireBlock.WIRE_CONNECTION_NORTH;
     public static final EnumProperty<WireConnection> EAST = RedstoneWireBlock.WIRE_CONNECTION_EAST;
     public static final EnumProperty<WireConnection> SOUTH = RedstoneWireBlock.WIRE_CONNECTION_SOUTH;
@@ -77,6 +79,7 @@ public class CopperWire extends Block implements CopperReadyDevice, BlockEntityP
                         .with(VERTICAL, false)
                         .with(HOP, false)
                         .with(WATERLOGGED, false)
+                        .with(FACING, Direction.NORTH)
         );
 
         CopperWireMod.COPPERWIRE = this;
@@ -98,7 +101,13 @@ public class CopperWire extends Block implements CopperReadyDevice, BlockEntityP
         builder.add(VERTICAL);
         builder.add(HOP);
         builder.add(WATERLOGGED);
+        builder.add(FACING);
         super.appendProperties(builder);
+    }
+
+    @Override
+    protected int getUpdateDelayInternal(BlockState state) {
+        return 0;
     }
 
     @Nullable
@@ -174,32 +183,34 @@ public class CopperWire extends Block implements CopperReadyDevice, BlockEntityP
     }
 
     @Override
-    public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
-        super.onBlockAdded(state, world, pos, oldState, notify);
+    public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+        /* Necessary to block side effects of AbstractRedstoneGateBlock. */
     }
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         ActionResult retval = ActionResult.FAIL;
 
-        if (!player.getAbilities().allowModifyWorld) {
-            retval = ActionResult.PASS;
-        } else if (hit.getType() == HitResult.Type.BLOCK) {
-            if (!state.get(VERTICAL) && handleWireHit(world, state, pos, getHitSpot(hit))) {
-                retval = ActionResult.SUCCESS;
-                if (!world.isClient) {
-                    BlockState newState = world.getBlockState(pos);
-                    updateConnectedNeighbors(newState, world, pos);
-                    if (newState.get(HOP) && !state.get(HOP)) {
-                        CopperWireEntity blockEntity = this.getEntity(world, pos);
-                        blockEntity.clearAll();
-                        blockEntity.setHop(true);
-                    }
+        if (hand == Hand.MAIN_HAND) {
+            if (!player.getAbilities().allowModifyWorld) {
+                retval = ActionResult.PASS;
+            } else if (hit.getType() == HitResult.Type.BLOCK) {
+                if (!state.get(VERTICAL) && handleWireHit(world, state, pos, getHitSpot(hit))) {
+                    retval = ActionResult.SUCCESS;
+                    if (!world.isClient) {
+                        BlockState newState = world.getBlockState(pos);
+                        updateConnectedNeighbors(newState, world, pos);
+                        if (newState.get(HOP) && !state.get(HOP)) {
+                            CopperWireEntity blockEntity = this.getEntity(world, pos);
+                            blockEntity.clearAll();
+                            blockEntity.setHop(true);
+                        }
 
-                    updatePower(newState, state, world, pos, false, true);
+                        updatePower(newState, state, world, pos, false, true);
+                    }
+                } else {
+                    retval = ActionResult.CONSUME;
                 }
-            } else {
-                retval = ActionResult.CONSUME;
             }
         }
 
