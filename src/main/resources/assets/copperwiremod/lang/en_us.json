@@ -3,5 +3,7 @@
   "item.copperwiremod.copperwire": "Copper Wire",
   "block.copperwiremod.copperwire.tooltip": "Use the top, bottom, left, right, or center to toggle connections",
   "block.copperwiremod.copper_psrc": "Copper Power Source",
-  "block.copperwiremod.copper_psrc.tooltip": "Adjustable Copper Power and Redstone Power emitter."
+  "block.copperwiremod.copper_psrc.tooltip": "Adjustable Copper Power and Redstone Power emitter",
+  "block.copperwiremod.copper_resistor": "Copper Resistor",
+  "block.copperwiremod.copper_resistor.tooltip": "Reduces copper value to the top of the next lower redstone value"
 }

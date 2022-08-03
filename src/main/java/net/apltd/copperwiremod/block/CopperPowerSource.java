@@ -1,6 +1,6 @@
 package net.apltd.copperwiremod.block;
 
-import net.apltd.copperwiremod.CopperWireMod;
+import static net.apltd.copperwiremod.util.CopperTools.CPtoRP;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.WallMountLocation;
 import net.minecraft.client.item.TooltipContext;
@@ -29,15 +29,22 @@ public class CopperPowerSource extends Block implements CopperReadyDevice{
     public static final BooleanProperty POWERED = LeverBlock.POWERED;
 
     public CopperPowerSource(AbstractBlock.Settings settings) {
-        super(settings);
+        super(settings
+                .luminance((BlockState blockState) -> {
+                    int retval = 0;
+                    if (blockState.isOf(ModBlocks.COPPER_POWERSOURCE)) {
+                        CopperPowerSource block = (CopperPowerSource) blockState.getBlock();
+                        retval = block.getWeakRedstonePower(blockState, null, null, null);
+                    }
+                    return retval;
+                })
+        );
 
         setDefaultState(
                 getStateManager().getDefaultState()
                         .with(CPOWER, 15)
                         .with(POWERED, false)
         );
-
-        CopperWireMod.COPPERPOWERSOURCE = this;
     }
 
     @Override
@@ -114,9 +121,4 @@ public class CopperPowerSource extends Block implements CopperReadyDevice{
             }
         }
     }
-
-    private int CPtoRP(int cp) {
-        return (cp >> 4) + ((cp & 0x0f) > 0 ? 1 : 0);
-    }
-
 }

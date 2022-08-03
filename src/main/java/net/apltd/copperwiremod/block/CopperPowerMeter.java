@@ -1,6 +1,6 @@
 package net.apltd.copperwiremod.block;
 
-import net.apltd.copperwiremod.CopperWireMod;
+import static net.apltd.copperwiremod.util.CopperTools.*;
 import net.minecraft.block.*;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.LivingEntity;
@@ -30,15 +30,24 @@ public class CopperPowerMeter extends Block {
 
 
     public CopperPowerMeter(AbstractBlock.Settings settings) {
-        super(settings);
+        super(settings
+                .luminance((BlockState blockState) -> {
+                    int retval = 0;
+                    if (blockState.isOf(ModBlocks.COPPER_POWERMETER)) {
+                        retval = blockState.get(CopperPowerMeter.MODE)
+                                ? CPtoRP(blockState.get(CopperPowerMeter.CPOWER))
+                                : blockState.get(CopperPowerMeter.CPOWER);
+
+                    }
+                    return retval;
+                })
+        );
 
         setDefaultState(
                 getStateManager().getDefaultState()
                         .with(MODE, false)
                         .with(CPOWER, 0)
         );
-
-        CopperWireMod.COPPERPOWERMETER = this;
     }
 
     @Override
@@ -90,10 +99,10 @@ public class CopperPowerMeter extends Block {
                 Direction dDir = Direction.Type.VERTICAL.test(dir) ? Direction.NORTH : dir.getOpposite();
                 if (state.get(MODE)) {
                     if ((dState.getBlock() instanceof CopperReadyDevice) &&
-                            ((!dState.isOf(CopperWireMod.COPPERWIRE) ||
+                            ((!dState.isOf(ModBlocks.COPPER_WIRE) ||
                                     (Direction.Type.VERTICAL.test(dir) ||
                                             (!dState.get(CopperWire.VERTICAL) &&
-                                                    dState.get(CopperWire.propForDirection(dir)).isConnected()))))) {
+                                                    dState.get(propForDirection(dir)).isConnected()))))) {
                         max = Math.max(max, ((CopperReadyDevice)dState.getBlock())
                                 .getCopperSignal(world, dPos, dDir, null));
                     }
@@ -117,10 +126,10 @@ public class CopperPowerMeter extends Block {
                 }
                 else {
                     if ((dState.getBlock() instanceof CopperReadyDevice) &&
-                            ((!dState.isOf(CopperWireMod.COPPERWIRE) ||
+                            ((!dState.isOf(ModBlocks.COPPER_WIRE) ||
                                     (Direction.Type.VERTICAL.test(dir) ||
                                             (!dState.get(CopperWire.VERTICAL) &&
-                                                    dState.get(CopperWire.propForDirection(dir)).isConnected()))))) {
+                                                    dState.get(propForDirection(dir)).isConnected()))))) {
                         max = Math.max(max, CPtoRP(((CopperReadyDevice)dState.getBlock())
                                 .getCopperSignal(world, dPos, dDir, null)));
                     }
@@ -149,9 +158,5 @@ public class CopperPowerMeter extends Block {
                 world.updateNeighborsAlways(pos, this);
             }
         }
-    }
-
-    private int CPtoRP(int cp) {
-        return (cp >> 4) + ((cp & 0x0f) > 0 ? 1 : 0);
     }
 }
