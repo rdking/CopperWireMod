@@ -1,9 +1,6 @@
 package net.apltd.copperwiremod;
 
-import net.apltd.copperwiremod.block.CopperPowerMeter;
-import net.apltd.copperwiremod.block.CopperWire;
-import net.apltd.copperwiremod.block.ModBlocks;
-import net.apltd.copperwiremod.block.CopperPowerSource;
+import net.apltd.copperwiremod.block.*;
 import net.apltd.copperwiremod.blockentity.ModBlockEntities;
 import net.apltd.copperwiremod.item.ModItems;
 import net.fabricmc.api.ModInitializer;
@@ -13,10 +10,6 @@ import org.slf4j.LoggerFactory;
 public class CopperWireMod implements ModInitializer {
 	public static final String MODID = "copperwiremod";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
-
-	public static CopperWire COPPERWIRE = null;
-    public static CopperPowerSource COPPERPOWERSOURCE = null;
-	public static CopperPowerMeter COPPERPOWERMETER = null;
 
     @Override
 	public void onInitialize() {

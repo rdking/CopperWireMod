@@ -107,29 +107,6 @@ public class CopperWireEntity extends BlockEntity {
         return retval;
     }
 
-    public int getOldPowerOut(Direction dir) {
-        return hop
-                ? (dir == Direction.NORTH) || (dir == Direction.SOUTH)
-                ? Math.max(oPowerN, oPowerS)
-                : Math.max(oPowerE, oPowerW)
-                : vertical
-                ? dir == Direction.NORTH ? oPowerN
-                : dir == Direction.EAST ? oPowerE
-                : dir == Direction.SOUTH ? oPowerS : oPowerW
-                : Math.max(oPowerN, Math.max(oPowerE, Math.max(oPowerS, oPowerW)));
-    }
-
-    public Direction getOldPowerSrcDir(Direction dir) {
-        Direction retval = null;
-        switch (dir) {
-            case NORTH -> retval = oSrcDirN;
-            case EAST -> retval = oSrcDirE;
-            case SOUTH -> retval = oSrcDirS;
-            case WEST -> retval = oSrcDirW;
-        }
-        return retval;
-    }
-
     public Direction getPowerSrcDir(Direction dir) {
         Direction retval = null;
         switch (dir) {
@@ -142,16 +119,11 @@ public class CopperWireEntity extends BlockEntity {
     }
 
     public void setPower(Direction cDir, CopperPower p) {
-        setPower(cDir, p.sDir, p.power > 0 ? p.power - 1 : 0);
-    }
-
-    private int CPtoRP(int cp) {
-        return (cp >> 4) + ((cp & 0x0f) > 0 ? 1 : 0);
+        setPower(cDir, p.sDir, Math.max(0, p.power - (p.isFromCopperWire ? 1 : 0)));
     }
 
     private void setPower(Direction cDir, Direction sDir, int power) {
         int cPower = getPowerOut(cDir);
-        int oldPower = getOldPowerOut(cDir);
         Direction oldDir = getPowerSrcDir(cDir);
         boolean updated = (power != cPower) || (sDir != oldDir);
         modified |= updated;
@@ -337,10 +309,6 @@ public class CopperWireEntity extends BlockEntity {
                 ", powerW=" + powerW +
                 ", modified=" + modified +
                 '}';
-    }
-
-    public void reset(Direction dir) {
-        setPower(dir, Direction.DOWN, 0);
     }
 
     public void clearAll() {

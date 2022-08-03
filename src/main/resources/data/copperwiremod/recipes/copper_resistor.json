@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "   ",
+    "SCS",
+    " R "
+  ],
+  "key": {
+    "C": {
+      "item": "copperwiremod:copperwire"
+    },
+    "R": {
+      "item": "minecraft:stone_slab"
+    },
+    "S": {
+      "item": "minecraft:sand"
+    }
+  },
+  "result": {
+    "item": "copperwiremod:copper_pmeter",
+    "count": 1
+  }
+}
