@@ -5,5 +5,7 @@
   "block.copperwiremod.copper_psrc": "Copper Power Source",
   "block.copperwiremod.copper_psrc.tooltip": "Adjustable Copper Power and Redstone Power emitter",
   "block.copperwiremod.copper_resistor": "Copper Resistor",
-  "block.copperwiremod.copper_resistor.tooltip": "Reduces copper value to the top of the next lower redstone value"
+  "block.copperwiremod.copper_resistor.tooltip": "Reduces copper value to the top of the next lower redstone value",
+  "block.copperwiremod.copper_light": "Copper Light",
+  "block.copperwiremod.copper_light.tooltip": "Light with redstone power-selected color"
 }

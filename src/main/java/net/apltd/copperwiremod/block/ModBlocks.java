@@ -24,16 +24,21 @@ public class ModBlocks {
             new CopperPowerSource(FabricBlockSettings.copy(Blocks.REDSTONE_BLOCK)
                     .solidBlock((BlockState state, BlockView world, BlockPos pos) -> false)
             ), ItemGroup.REDSTONE);
+
     public static final Block COPPER_POWERMETER = registerBlock(CopperPowerMeter.BLOCK_NAME,
             new CopperPowerMeter(FabricBlockSettings.copy(Blocks.RED_STAINED_GLASS)
                     .nonOpaque()
                     .solidBlock((BlockState state, BlockView world, BlockPos pos) -> true)
             ), ItemGroup.REDSTONE);
+
     public static final Block COPPER_RESISTOR = registerBlock(CopperResistor.BLOCK_NAME,
             new CopperResistor(FabricBlockSettings.copy(Blocks.REPEATER)
                     .nonOpaque()
                     .solidBlock((BlockState state, BlockView world, BlockPos pos) -> false)
             ), ItemGroup.REDSTONE);
+
+    public static final Block COPPER_LIGHT = registerBlock(CopperLight.BLOCK_NAME,
+            new CopperLight(FabricBlockSettings.of(Material.REDSTONE_LAMP)), ItemGroup.REDSTONE);
 
     private static void registerBlockItem(String name, Block block, ItemGroup group) {
         Registry.register(Registry.ITEM, new Identifier(CopperWireMod.MODID, name),
@@ -47,7 +52,6 @@ public class ModBlocks {
     }
 
     public static void registerModBlocks() {
-        CopperWireMod.LOGGER.info("Registering the block: " + CopperWire.BLOCK_NAME);
-        CopperWireMod.LOGGER.info("Registering the block: " + CopperPowerSource.BLOCK_NAME);
+        CopperWireMod.LOGGER.info("Registering CopperWireMod blocks...");
     }
 }

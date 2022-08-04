@@ -1,0 +1,137 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "copperwiremod:block/copper_light_frame"
+      }
+    },
+    {
+      "when": {
+        "color": 0
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_black"
+      }
+    },
+    {
+      "when": {
+        "color": 1
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_darkblue"
+      }
+    },
+    {
+      "when": {
+        "color": 2
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_darkgreen"
+      }
+    },
+    {
+      "when": {
+        "color": 3
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_aqua"
+      }
+    },
+    {
+      "when": {
+        "color": 4
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_darkred"
+      }
+    },
+    {
+      "when": {
+        "color": 5
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_purple"
+      }
+    },
+    {
+      "when": {
+        "color": 6
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_brown"
+      }
+    },
+    {
+      "when": {
+        "color": 7
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_silver"
+      }
+    },
+    {
+      "when": {
+        "color": 8
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_gray"
+      }
+    },
+    {
+      "when": {
+        "color": 9
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_blue"
+      }
+    },
+    {
+      "when": {
+        "color": 10
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_green"
+      }
+    },
+    {
+      "when": {
+        "color": 11
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_cyan"
+      }
+    },
+    {
+      "when": {
+        "color": 12
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_red"
+      }
+    },
+    {
+      "when": {
+        "color": 13
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_magenta"
+      }
+    },
+    {
+      "when": {
+        "color": 14
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_yellow"
+      }
+    },
+    {
+      "when": {
+        "color": 15
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_light_white"
+      }
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "copper_light_group",
+  "pattern": [
+    " G ",
+    "RLB",
+    " C "
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:red_stained_glass_pane"
+    },
+    "G": {
+      "item": "minecraft:green_stained_glass_pane"
+    },
+    "B": {
+      "item": "minecraft:blue_stained_glass_pane"
+    },
+    "C": {
+      "item": "copperwiremod:copperwire"
+    },
+    "L": {
+      "item": "minecraft:shroomlight"
+    }
+  },
+  "result": {
+    "item": "copperwiremod:copper_light",
+    "count": 1
+  }
+}
