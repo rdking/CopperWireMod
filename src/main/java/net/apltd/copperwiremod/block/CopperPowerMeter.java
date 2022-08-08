@@ -1,6 +1,8 @@
 package net.apltd.copperwiremod.block;
 
 import static net.apltd.copperwiremod.util.CopperTools.*;
+
+import net.apltd.copperwiremod.util.CopperTools;
 import net.minecraft.block.*;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.LivingEntity;
@@ -26,8 +28,7 @@ import java.util.List;
 public class CopperPowerMeter extends Block {
     public static final String BLOCK_NAME = "copper_pmeter";
     public static final BooleanProperty MODE = BooleanProperty.of("mode");
-    public static final IntProperty CPOWER = CopperPowerSource.CPOWER;
-
+    public static final IntProperty CPOWER = CopperTools.CPOWER;
 
     public CopperPowerMeter(AbstractBlock.Settings settings) {
         super(settings

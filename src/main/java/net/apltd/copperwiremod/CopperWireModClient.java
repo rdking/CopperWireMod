@@ -9,5 +9,6 @@ public class CopperWireModClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.COPPER_POWERMETER, RenderLayer.getTranslucent());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.COPPER_SIGNALLOCK, RenderLayer.getCutout());
     }
 }

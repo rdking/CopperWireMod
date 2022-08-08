@@ -1,0 +1,21 @@
+{
+	"credit": "Made with Blockbench",
+	"textures": {
+		"6": "minecraft:block/bedrock",
+		"particle": "minecraft:block/smooth_stone"
+	},
+	"elements": [
+		{
+			"from": [5, 2, 7],
+			"to": [11, 4, 9],
+			"faces": {
+				"north": {"uv": [0, 0, 6, 2], "texture": "#6"},
+				"east": {"uv": [0, 0, 2, 2], "texture": "#6"},
+				"south": {"uv": [0, 0, 6, 2], "texture": "#6"},
+				"west": {"uv": [0, 0, 2, 2], "texture": "#6"},
+				"up": {"uv": [0, 0, 6, 2], "texture": "#6"},
+				"down": {"uv": [0, 0, 6, 2], "texture": "#6"}
+			}
+		}
+	]
+}

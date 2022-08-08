@@ -1,6 +1,8 @@
 package net.apltd.copperwiremod.block;
 
 import static net.apltd.copperwiremod.util.CopperTools.CPtoRP;
+
+import net.apltd.copperwiremod.util.CopperTools;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.WallMountLocation;
 import net.minecraft.client.item.TooltipContext;
@@ -25,7 +27,7 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public class CopperPowerSource extends Block implements CopperReadyDevice{
     public static final String BLOCK_NAME = "copper_psrc";
-    public static final IntProperty CPOWER = IntProperty.of("cpower", 0, 240);
+    public static final IntProperty CPOWER = CopperTools.CPOWER;
     public static final BooleanProperty POWERED = LeverBlock.POWERED;
 
     public CopperPowerSource(AbstractBlock.Settings settings) {
