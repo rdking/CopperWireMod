@@ -637,7 +637,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
             cDir = getRelevantDirection(state, pos, downState, downPos, dir, RelevantDirMode.TARGET);
             retval[1].sDir = getRelevantDirection(state, pos, downState, downPos, dir, RelevantDirMode.POWER);
             retval[1].power = getCopperSignal(world, downPos, cDir, iDir);
-            retval[0].isFromCopperWire = true;
+            retval[1].isFromCopperWire = true;
         }
         else {
             retval[1] = retval[0];

@@ -80,11 +80,9 @@ public class CopperPowerMeter extends Block {
                 retval = ActionResult.PASS;
             } else if (hit.getType() == HitResult.Type.BLOCK) {
                 boolean mode = !state.get(MODE);
-                int power = mode ? state.get(CPOWER) * 16 : CPtoRP(state.get(CPOWER));
                 retval = ActionResult.SUCCESS;
-                state = state.with(MODE, mode).with(CPOWER, power);
-                world.setBlockState(pos, state, Block.NOTIFY_LISTENERS);
-                world.updateNeighborsAlways(pos, this);
+                state = state.with(MODE, mode);
+                neighborUpdate(state, world, pos, null, null, false);
             }
         }
         return retval;
