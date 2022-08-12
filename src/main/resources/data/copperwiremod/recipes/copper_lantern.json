@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "copper_light_group",
+  "pattern": [
+    " C ",
+    "CRC",
+    "CCC"
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:redstone_torch"
+    },
+    "C": {
+      "item": "minecraft:copperwire_ingot"
+    }
+  },
+  "result": {
+    "item": "copperwiremod:copper_lantern",
+    "count": 1
+  }
+}

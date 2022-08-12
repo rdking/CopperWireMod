@@ -1,0 +1,35 @@
+{
+	"credit": "Made with Blockbench",
+	"textures": {
+		"2": "minecraft:block/redstone_torch",
+		"particle": "minecraft:block/copper_block"
+	},
+	"elements": [
+		{
+			"from": [6, 7, 7],
+			"to": [10, 13, 9],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8, 8]},
+			"faces": {
+				"north": {"uv": [6, 5, 10, 11], "texture": "#2"},
+				"south": {"uv": [6, 5, 10, 11], "texture": "#2"}
+			}
+		},
+		{
+			"from": [7, 7, 6],
+			"to": [9, 13, 10],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8, 8]},
+			"faces": {
+				"east": {"uv": [6, 5, 10, 11], "texture": "#2"},
+				"west": {"uv": [6, 5, 10, 11], "texture": "#2"}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "torch",
+			"origin": [8, 8, 8],
+			"color": 0,
+			"children": [0, 1]
+		}
+	]
+}

@@ -43,6 +43,12 @@ public class ModBlocks {
     public static final Block COPPER_SIGNALLOCK = registerBlock(CopperSignalLock.BLOCK_NAME,
             new CopperSignalLock(FabricBlockSettings.of(Material.STONE)), ItemGroup.REDSTONE);
 
+    public static final Block COPPER_LANTERN = registerBlock(CopperLantern.BLOCK_NAME,
+            new CopperLantern(FabricBlockSettings.of(Material.STONE)
+                    .nonOpaque()
+                    .solidBlock((BlockState state, BlockView world, BlockPos pos) -> false)
+            ), ItemGroup.REDSTONE);
+
 
     private static void registerBlockItem(String name, Block block, ItemGroup group) {
         Registry.register(Registry.ITEM, new Identifier(CopperWireMod.MODID, name),

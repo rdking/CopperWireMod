@@ -4,8 +4,16 @@
   "block.copperwiremod.copperwire.tooltip": "Use the top, bottom, left, right, or center to toggle connections",
   "block.copperwiremod.copper_psrc": "Copper Power Source",
   "block.copperwiremod.copper_psrc.tooltip": "Adjustable Copper Power and Redstone Power emitter",
+  "block.copperwiremod.copper_pmeter": "Copper Power Meter",
+  "block.copperwiremod.copper_pmeter.tooltip": "Displays the redstone or copper power of redstone dust or copper wire",
   "block.copperwiremod.copper_resistor": "Copper Resistor",
   "block.copperwiremod.copper_resistor.tooltip": "Reduces copper value to the top of the next lower redstone value",
   "block.copperwiremod.copper_light": "Copper Light",
-  "block.copperwiremod.copper_light.tooltip": "Light with redstone power-selected color"
+  "block.copperwiremod.copper_light.tooltip": "Light with redstone power-selected color",
+  "block.copperwiremod.copper_signallock": "Copper Signal Lock",
+  "block.copperwiremod.copper_signallock.tooltip": "Traps the existing copper/redstone value without amplification",
+  "block.copperwiremod.copper_lantern": "Copper Lantern",
+  "block.copperwiremod.copper_lantern.tooltip": "Light source with controllable intensity",
+  "block.copperwiremod.copper_": "",
+  "block.copperwiremod.copper_.tooltip": ""
 }
