@@ -1,19 +1,15 @@
 package net.apltd.copperwiremod.block;
 
-import static net.apltd.copperwiremod.util.CopperTools.CPtoRP;
 import static net.apltd.copperwiremod.util.CopperTools.propForDirection;
 
-import net.apltd.copperwiremod.util.CopperTools;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.AbstractRedstoneGateBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
+import net.minecraft.block.*;
 import net.minecraft.block.enums.WireConnection;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.IntProperty;
+import net.minecraft.state.property.Properties;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -21,9 +17,9 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
-public class CopperSignalLock extends AbstractRedstoneGateBlock implements CopperReadyDevice {
+public class CopperSignalLock extends AbstractRedstoneGateBlock {
     public static final String BLOCK_NAME = "copper_signallock";
-    public static final IntProperty CPOWER = CopperTools.CPOWER;
+    public static final IntProperty POWER = Properties.POWER;
     public static final BooleanProperty LOCKED = BooleanProperty.of("locked");
     public static final BooleanProperty LIT = BooleanProperty.of("lit");
 
@@ -33,7 +29,7 @@ public class CopperSignalLock extends AbstractRedstoneGateBlock implements Coppe
 
         setDefaultState(
                 getStateManager().getDefaultState()
-                        .with(CPOWER, 0)
+                        .with(POWER, 0)
                         .with(LOCKED, true)
                         .with(LIT, false)
                         .with(FACING, Direction.NORTH)
@@ -42,7 +38,7 @@ public class CopperSignalLock extends AbstractRedstoneGateBlock implements Coppe
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(CPOWER);
+        builder.add(POWER);
         builder.add(LOCKED);
         builder.add(LIT);
         builder.add(FACING);
@@ -73,14 +69,8 @@ public class CopperSignalLock extends AbstractRedstoneGateBlock implements Coppe
     }
 
     @Override
-    public int getCopperSignal(BlockView world, BlockPos pos, Direction dir, Direction iDir) {
-        BlockState state = world.getBlockState(pos);
-        return (dir == state.get(FACING)) ? state.get(CPOWER) : 0;
-    }
-
-    @Override
     public int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        return (direction.getOpposite() == state.get(FACING)) ? CPtoRP(state.get(CPOWER)) : 0;
+        return (direction.getOpposite() == state.get(FACING)) ? state.get(POWER) : 0;
     }
 
     @Override
@@ -108,14 +98,11 @@ public class CopperSignalLock extends AbstractRedstoneGateBlock implements Coppe
             newState = newState.with(LOCKED, locked);
         }
         if (!srcState.contains(prop) || srcState.get(prop).isConnected()) {
-            Block block = srcState.getBlock();
-            power = block instanceof CopperReadyDevice
-                    ? ((CopperReadyDevice) block).getCopperSignal(world, srcPos, facing, null)
-                    : srcState.getWeakRedstonePower(world, srcPos, srcDir) * 16;
+            power = srcState.getWeakRedstonePower(world, srcPos, srcDir);
         }
         newState = newState.with(LIT, power != 0);
-        if (!locked && (power != newState.get(CPOWER))) {
-            newState = newState.with(CPOWER, power);
+        if (!locked && (power != newState.get(POWER))) {
+            newState = newState.with(POWER, power);
         }
         return newState;
     }
