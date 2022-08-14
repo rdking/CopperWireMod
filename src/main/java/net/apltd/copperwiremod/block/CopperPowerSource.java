@@ -6,6 +6,7 @@ import net.apltd.copperwiremod.util.CopperTools;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.WallMountLocation;
 import net.minecraft.client.item.TooltipContext;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.StateManager;
@@ -54,6 +55,14 @@ public class CopperPowerSource extends Block implements CopperReadyDevice{
         builder.add(CPOWER);
         builder.add(POWERED);
         super.appendProperties(builder);
+    }
+
+    @Override
+    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
+        if (!world.isClient) {
+            neighborUpdate(state, world, pos, state.getBlock(), pos, false);
+        }
+        super.onPlaced(world, pos, state, placer, itemStack);
     }
 
     @Override

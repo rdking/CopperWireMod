@@ -106,6 +106,17 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
     }
 
     @Override
+    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
+        if (!moved) {
+            for (Direction direction : Direction.values()) {
+                if (isWallInDirection(world, direction, pos)) {
+                    world.updateNeighborsExcept(pos.offset(direction), this, direction.getOpposite());
+                }
+            }
+        }
+    }
+
+    @Override
     protected int getUpdateDelayInternal(BlockState state) {
         return 0;
     }
@@ -232,6 +243,10 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
                 Direction cDir = getRelevantDirection(srcState, srcPos, state, pos, dir, RelevantDirMode.TARGET);
                 retval = CPtoRP(getCopperSignal(world, pos, cDir, state.get(VERTICAL) ? iDir : oDir));
             }
+        }
+        else if ((oDir == Direction.DOWN) && !state.get(VERTICAL)) {
+            CopperWireEntity entity = getEntity(world, pos);
+            retval = entity.getMaxPowerOut();
         }
 
         return retval;
@@ -817,9 +832,8 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
                         (!srcState.isOf(this) || (srcState.get(propForDirection(dir.getOpposite())) == WireConnection.NONE))) {
                     BlockPos downPos = srcPos.down();
                     BlockState downState = world.getBlockState(downPos);
-                    if (downState.emitsRedstonePower() &&
-                            !(downState.isOf(this) &&
-                                    (downState.get(propForDirection(dir.getOpposite())) != WireConnection.UP))) {
+                    if (downState.isOf(this) &&
+                            (downState.get(propForDirection(dir.getOpposite())) == WireConnection.UP)) {
                         srcPos = downPos;
                     }
                 }
