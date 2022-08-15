@@ -643,7 +643,8 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
             int rPower = tgtState.getWeakRedstonePower(world, tgtPos, dir);
             retval[0].power = Math.max(retval[0].power, rPower * 16);
             retval[0].sDir = pDir;
-            retval[0].isFromRedstone = !(tgtState.getBlock() instanceof CopperReadyDevice);
+            retval[0].isFromRedstone = !(tgtState.getBlock() instanceof CopperReadyDevice) &&
+                    !(tgtState.getBlock() instanceof AbstractRedstoneGateBlock);
             retval[0].isFromCopperWire = tgtState.isOf(this);
         }
 
