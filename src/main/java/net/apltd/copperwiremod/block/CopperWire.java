@@ -214,7 +214,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
                         if (newState.get(HOP) && !state.get(HOP)) {
                             CopperWireEntity blockEntity = this.getEntity(world, pos);
                             blockEntity.clearAll();
-                            blockEntity.setHop(true);
+                            blockEntity.setHop(newState.get(HOP));
                         }
 
                         updatePower(newState, state, world, pos, false, true);

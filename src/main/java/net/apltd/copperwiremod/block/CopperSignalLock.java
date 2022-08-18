@@ -16,6 +16,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldView;
 
 public class CopperSignalLock extends AbstractRedstoneGateBlock {
     public static final String BLOCK_NAME = "copper_signallock";
@@ -53,6 +54,13 @@ public class CopperSignalLock extends AbstractRedstoneGateBlock {
         World world = ctx.getWorld();
         state = update(world, state, pos);
         return state;
+    }
+
+    @Override
+    public boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
+        BlockPos blockPos = pos.offset(Direction.DOWN);
+        BlockState blockState = world.getBlockState(blockPos);
+        return blockState.isSideSolidFullSquare(world, blockPos, Direction.DOWN);
     }
 
     @Override

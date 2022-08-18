@@ -2,16 +2,19 @@
   "type": "minecraft:crafting_shaped",
   "group": "copper_light_group",
   "pattern": [
-    " C ",
-    "CRC",
-    "CCC"
+    " I ",
+    "IRI",
+    "CIC"
   ],
   "key": {
     "R": {
       "item": "minecraft:redstone_torch"
     },
     "C": {
-      "item": "minecraft:copperwire_ingot"
+      "item": "copperwiremod:copperwire"
+    },
+    "I": {
+      "item": "minecraft:copper_ingot"
     }
   },
   "result": {

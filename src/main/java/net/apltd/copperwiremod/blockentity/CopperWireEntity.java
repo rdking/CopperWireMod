@@ -120,6 +120,7 @@ public class CopperWireEntity extends BlockEntity {
 
     public void setPower(Direction cDir, CopperPower p) {
         setPower(cDir, p.sDir, Math.max(0, p.power - (p.isFromCopperWire ? 1 : 0)));
+        validatePower();
     }
 
     private void setPower(Direction cDir, Direction sDir, int power) {
@@ -235,18 +236,21 @@ public class CopperWireEntity extends BlockEntity {
             srcDirW = Direction.DOWN;
         }
 
+        validatePower();
+        saveOld();
+
+        CopperWireMod.LOGGER.trace("Loading entity state @(" + getPos().toShortString() + "), " + toShortString());
+    }
+
+    private void validatePower() {
         if (powerN < 0) powerN = 0;
         if (powerE < 0) powerE = 0;
         if (powerS < 0) powerS = 0;
         if (powerW < 0) powerW = 0;
-        while (powerN > 239) powerN >>= 4;
-        while (powerE > 239) powerE >>= 4;
-        while (powerS > 239) powerS >>= 4;
-        while (powerW > 239) powerW >>= 4;
-
-        saveOld();
-
-        CopperWireMod.LOGGER.trace("Loading entity state @(" + getPos().toShortString() + "), " + toShortString());
+        while (powerN > 240) powerN >>= 4;
+        while (powerE > 240) powerE >>= 4;
+        while (powerS > 240) powerS >>= 4;
+        while (powerW > 240) powerW >>= 4;
     }
 
     @Override
