@@ -8,6 +8,15 @@ public class CopperPower {
     public boolean isFromRedstone = false;      //True if the power reading came from redstone.
     public boolean isFromCopperWire = false;    //True if the power reading came from copper wire.
 
+    public CopperPower() {}
+
+    public CopperPower(int power, Direction sDir, boolean isFromRedstone, boolean isFromCopperWire) {
+        this.power = power;
+        this.sDir = sDir;
+        this.isFromRedstone = isFromRedstone;
+        this.isFromCopperWire = isFromCopperWire;
+    }
+
     @Override
     public String toString() {
         return "CopperPower{power=" + power + ", sDir=" + sDir +

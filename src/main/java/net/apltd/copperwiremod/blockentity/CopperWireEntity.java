@@ -58,7 +58,7 @@ public class CopperWireEntity extends BlockEntity {
 
     public CopperWireEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.COPPERWIRE_ENTITY, pos, state);
-        vertical = state.get(CopperWire.VERTICAL);
+        vertical = state.contains(CopperWire.VERTICAL) && state.get(CopperWire.VERTICAL);
     }
 
     public int getMaxPowerOut() {
@@ -151,26 +151,42 @@ public class CopperWireEntity extends BlockEntity {
                 }
             } else {
                 boolean isH = hop && ((cDir == Direction.EAST) || (cDir == Direction.WEST));
-                if (isH) {
-                    srcDirE = sDir;
-                    srcDirW = sDir;
-                } else {
-                    srcDirN = sDir;
-                    srcDirS = sDir;
-                    if (!hop) {
+                if (sDir == Direction.DOWN) {
+                    sDir = cDir;
+                }
+                if (!isH) {
+                    if ((cDir == Direction.NORTH) || (powerN < power) || (srcDirN == sDir)) {
+                        srcDirN = sDir;
+                    }
+                    if ((cDir == Direction.SOUTH) || (powerS < power) || (srcDirS == sDir)) {
+                        srcDirS = sDir;
+                    }
+                }
+                if (isH || !hop) {
+                    if ((cDir == Direction.EAST) || (powerE < power) || (srcDirE == sDir)) {
                         srcDirE = sDir;
+                    }
+                    if ((cDir == Direction.WEST) || (powerW < power) || (srcDirW == sDir)) {
                         srcDirW = sDir;
                     }
                 }
 
                 if (!hop || !isH) {
-                    powerN = power;
-                    powerS = power;
+                    if ((cDir == Direction.NORTH) || (powerN < power) || (srcDirN == sDir)) {
+                        powerN = power;
+                    }
+                    if ((cDir == Direction.SOUTH) || (powerS < power) || (srcDirS == sDir)) {
+                        powerS = power;
+                    }
                 }
 
                 if (!hop || isH) {
-                    powerE = power;
-                    powerW = power;
+                    if ((cDir == Direction.EAST) || (powerE < power) || (srcDirE == sDir)) {
+                        powerE = power;
+                    }
+                    if ((cDir == Direction.WEST) || (powerW < power) || (srcDirW == sDir)) {
+                        powerW = power;
+                    }
                 }
             }
         }

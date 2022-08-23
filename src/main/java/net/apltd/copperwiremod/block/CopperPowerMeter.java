@@ -93,17 +93,19 @@ public class CopperPowerMeter extends Block {
         if (!world.isClient) {
             int max = 0;
             for (Direction dir: Direction.values()) {
+                if (max == (state.get(MODE) ? 240 : 15)) break;
                 BlockPos dPos = pos.offset(dir);
                 BlockState dState = world.getBlockState(dPos);
-                Direction dDir = Direction.Type.VERTICAL.test(dir) ? Direction.NORTH : dir.getOpposite();
                 if (state.get(MODE)) {
                     if ((dState.getBlock() instanceof CopperReadyDevice) &&
                             ((!dState.isOf(ModBlocks.COPPER_WIRE) ||
                                     (Direction.Type.VERTICAL.test(dir) ||
                                             (!dState.get(CopperWire.VERTICAL) &&
                                                     dState.get(propForDirection(dir)).isConnected()))))) {
-                        max = Math.max(max, ((CopperReadyDevice)dState.getBlock())
-                                .getCopperSignal(world, dPos, dDir, null));
+                        for (Direction dDir: Direction.Type.HORIZONTAL) {
+                            max = Math.max(max, ((CopperReadyDevice) dState.getBlock())
+                                    .getCopperSignal(world, dPos, dDir, null));
+                        }
                     }
                     else {
                         if (Direction.Type.VERTICAL.test(dir) && dState.isOf(Blocks.REDSTONE_WIRE)) {
@@ -129,8 +131,10 @@ public class CopperPowerMeter extends Block {
                                     (Direction.Type.VERTICAL.test(dir) ||
                                             (!dState.get(CopperWire.VERTICAL) &&
                                                     dState.get(propForDirection(dir)).isConnected()))))) {
-                        max = Math.max(max, CPtoRP(((CopperReadyDevice)dState.getBlock())
-                                .getCopperSignal(world, dPos, dDir, null)));
+                        for (Direction dDir: Direction.Type.HORIZONTAL) {
+                            max = Math.max(max, CPtoRP(((CopperReadyDevice) dState.getBlock())
+                                    .getCopperSignal(world, dPos, dDir, null)));
+                        }
                     }
                     else {
                         if (Direction.Type.VERTICAL.test(dir) && dState.isOf(Blocks.REDSTONE_WIRE)) {
