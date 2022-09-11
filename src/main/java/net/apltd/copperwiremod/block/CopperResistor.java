@@ -1,10 +1,8 @@
 package net.apltd.copperwiremod.block;
 
 import static net.apltd.copperwiremod.util.CopperTools.*;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.AbstractRedstoneGateBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
+
+import net.minecraft.block.*;
 import net.minecraft.block.enums.WireConnection;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.server.world.ServerWorld;
@@ -14,6 +12,7 @@ import net.minecraft.state.property.Property;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
@@ -21,6 +20,10 @@ import net.minecraft.world.WorldView;
 public class CopperResistor extends AbstractRedstoneGateBlock implements CopperReadyDevice {
     public static final String BLOCK_NAME = "copper_resistor";
     public static final IntProperty CPOWER = CopperPowerSource.CPOWER;
+    private static final VoxelShape COPPER_RESISTOR_SHAPE_NS =
+            Block.createCuboidShape(5.0D, 0.0D, 0.0D, 11.0D, 3.0D, 16.0D);
+    private static final VoxelShape COPPER_RESISTOR_SHAPE_EW =
+            Block.createCuboidShape(0.0D, 0.0D, 5.0D, 16.0D, 3.0D, 11.0D);
     public CopperResistor(AbstractBlock.Settings settings) {
         super(settings
                 .luminance((BlockState blockState) -> {
@@ -44,6 +47,12 @@ public class CopperResistor extends AbstractRedstoneGateBlock implements CopperR
         builder.add(CPOWER);
         builder.add(FACING);
         super.appendProperties(builder);
+    }
+
+    @Override
+    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+        return ((state.get(FACING) == Direction.NORTH) || (state.get(FACING) == Direction.SOUTH))
+                ? COPPER_RESISTOR_SHAPE_NS : COPPER_RESISTOR_SHAPE_EW;
     }
 
     @Override

@@ -18,43 +18,31 @@ public class CopperWireEntity extends BlockEntity {
     public static final String COPPERWIRE_ENTITYNAME = "copperwire_entity";
     private static final String NBT_NAME = "copper_wire_power";
 
-    //CopperPower Data
-    private int powerN = 0;
-    private int powerE = 0;
-    private int powerS = 0;
-    private int powerW = 0;
-    private Direction srcDirN = Direction.DOWN;
-    private Direction srcDirE = Direction.DOWN;
-    private Direction srcDirS = Direction.DOWN;
-    private Direction srcDirW = Direction.DOWN;
-
     //Mode Data
     private boolean hop = false;
     private boolean vertical;
 
-    //Copy data
-    private int cPowerN = 0;
-    private int cPowerE = 0;
-    private int cPowerS = 0;
-    private int cPowerW = 0;
-    private Direction cSrcDirN = Direction.DOWN;
-    private Direction cSrcDirE = Direction.DOWN;
-    private Direction cSrcDirS = Direction.DOWN;
-    private Direction cSrcDirW = Direction.DOWN;
-
-    //Copy data
-    private int oPowerN = 0;
-    private int oPowerE = 0;
-    private int oPowerS = 0;
-    private int oPowerW = 0;
-    private Direction oSrcDirN = Direction.DOWN;
-    private Direction oSrcDirE = Direction.DOWN;
-    private Direction oSrcDirS = Direction.DOWN;
-    private Direction oSrcDirW = Direction.DOWN;
-
     //Dirty state
     private boolean changing = false;
     private boolean modified = false;
+
+    //CopperPower Data
+    private CopperPower powerN = new CopperPower();
+    private CopperPower powerE = new CopperPower();
+    private CopperPower powerS = new CopperPower();
+    private CopperPower powerW = new CopperPower();
+
+    //Copy data
+    private CopperPower cPowerN = new CopperPower();
+    private CopperPower cPowerE = new CopperPower();
+    private CopperPower cPowerS = new CopperPower();
+    private CopperPower cPowerW = new CopperPower();
+
+    //Previous data
+    private CopperPower oPowerN = new CopperPower();
+    private CopperPower oPowerE = new CopperPower();
+    private CopperPower oPowerS = new CopperPower();
+    private CopperPower oPowerW = new CopperPower();
 
     public CopperWireEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.COPPERWIRE_ENTITY, pos, state);
@@ -70,36 +58,36 @@ public class CopperWireEntity extends BlockEntity {
     public int getPowerOut(Direction dir) {
         return hop
                 ? (dir == Direction.NORTH) || (dir == Direction.SOUTH)
-                    ? Math.max(powerN, powerS)
-                    : Math.max(powerE, powerW)
+                    ? Math.max(powerN.getCPower(), powerS.getCPower())
+                    : Math.max(powerE.getCPower(), powerW.getCPower())
                 : vertical
-                    ? dir == Direction.NORTH ? powerN
-                        : dir == Direction.EAST ? powerE
-                        : dir == Direction.SOUTH ? powerS : powerW
-                    : Math.max(powerN, Math.max(powerE, Math.max(powerS, powerW)));
+                    ? dir == Direction.NORTH ? powerN.getCPower()
+                        : dir == Direction.EAST ? powerE.getCPower()
+                        : dir == Direction.SOUTH ? powerS.getCPower() : powerW.getCPower()
+                    : Math.max(powerN.getCPower(), Math.max(powerE.getCPower(), Math.max(powerS.getCPower(), powerW.getCPower())));
     }
 
     public int getPowerOut(Direction dir, Direction ignore) {
         int retval = 0;
         switch(dir) {
             case NORTH -> {
-                if (srcDirN != ignore) {
-                    retval = powerN;
-                }
-            }
-            case SOUTH -> {
-                if (srcDirS != ignore) {
-                    retval = powerS;
+                if (powerN.getDir() != ignore) {
+                    retval = powerN.getCPower();
                 }
             }
             case EAST -> {
-                if (srcDirE != ignore) {
-                    retval = powerE;
+                if (powerE.getDir() != ignore) {
+                    retval = powerE.getCPower();
+                }
+            }
+            case SOUTH -> {
+                if (powerS.getDir() != ignore) {
+                    retval = powerS.getCPower();
                 }
             }
             case WEST -> {
-                if (srcDirW != ignore) {
-                    retval = powerW;
+                if (powerW.getDir() != ignore) {
+                    retval = powerW.getCPower();
                 }
             }
         }
@@ -107,89 +95,84 @@ public class CopperWireEntity extends BlockEntity {
         return retval;
     }
 
-    public Direction getPowerSrcDir(Direction dir) {
-        Direction retval = null;
-        switch (dir) {
-            case NORTH -> retval = srcDirN;
-            case EAST -> retval = srcDirE;
-            case SOUTH -> retval = srcDirS;
-            case WEST -> retval = srcDirW;
+    public void setPower(Direction cDir, CopperPower power) {
+        power.setCPower(Math.max(0, power.getCPower() - (power.isFromCopperWire() ? 1 : 0)));
+        if (changing) {
+            switch (cDir) {
+                case NORTH -> {
+                    if (!powerN.equals(power)) {
+                        powerN = power;
+                    }
+                }
+                case EAST -> {
+                    if (!powerE.equals(power)) {
+                        powerE = power;
+                    }
+                }
+                case SOUTH -> {
+                    if (!powerS.equals(power)) {
+                        powerS = power;
+                    }
+                }
+                case WEST -> {
+                    if (!powerW.equals(power)) {
+                        powerW = power;
+                    }
+                }
+            }
         }
-        return retval;
-    }
-
-    public void setPower(Direction cDir, CopperPower p) {
-        setPower(cDir, p.sDir, Math.max(0, p.power - (p.isFromCopperWire ? 1 : 0)));
         validatePower();
     }
 
-    private void setPower(Direction cDir, Direction sDir, int power) {
-        int cPower = getPowerOut(cDir);
-        Direction oldDir = getPowerSrcDir(cDir);
-        boolean updated = (power != cPower) || (sDir != oldDir);
-        modified |= updated;
+    public void resolve() {
+        if (!vertical) {
+            if (hop) {
+                int pN = powerN.getCPower();
+                int pE = powerE.getCPower();
+                int pS = powerS.getCPower();
+                int pW = powerW.getCPower();
 
-        if (updated) {
-            if (vertical) {
-                switch (cDir) {
-                    case NORTH -> {
-                        powerN = power;
-                        srcDirN = sDir;
+                if (pE != pW) {
+                    if (pE > pW) {
+                        powerW = powerE;
                     }
-                    case SOUTH -> {
-                        powerS = power;
-                        srcDirS = sDir;
-                    }
-                    case EAST -> {
-                        powerE = power;
-                        srcDirE = sDir;
-                    }
-                    case WEST -> {
-                        powerW = power;
-                        srcDirW = sDir;
+                    else {
+                        powerE = powerW;
                     }
                 }
-            } else {
-                boolean isH = hop && ((cDir == Direction.EAST) || (cDir == Direction.WEST));
-                if (sDir == Direction.DOWN) {
-                    sDir = cDir;
-                }
-                if (!isH) {
-                    if ((cDir == Direction.NORTH) || (powerN < power) || (srcDirN == sDir)) {
-                        srcDirN = sDir;
+                if (pN != pS) {
+                    if (pN > pS) {
+                        powerS = powerN;
                     }
-                    if ((cDir == Direction.SOUTH) || (powerS < power) || (srcDirS == sDir)) {
-                        srcDirS = sDir;
-                    }
-                }
-                if (isH || !hop) {
-                    if ((cDir == Direction.EAST) || (powerE < power) || (srcDirE == sDir)) {
-                        srcDirE = sDir;
-                    }
-                    if ((cDir == Direction.WEST) || (powerW < power) || (srcDirW == sDir)) {
-                        srcDirW = sDir;
-                    }
-                }
-
-                if (!hop || !isH) {
-                    if ((cDir == Direction.NORTH) || (powerN < power) || (srcDirN == sDir)) {
-                        powerN = power;
-                    }
-                    if ((cDir == Direction.SOUTH) || (powerS < power) || (srcDirS == sDir)) {
-                        powerS = power;
-                    }
-                }
-
-                if (!hop || isH) {
-                    if ((cDir == Direction.EAST) || (powerE < power) || (srcDirE == sDir)) {
-                        powerE = power;
-                    }
-                    if ((cDir == Direction.WEST) || (powerW < power) || (srcDirW == sDir)) {
-                        powerW = power;
+                    else {
+                        powerN = powerS;
                     }
                 }
             }
+            else {
+                int power = getMaxPowerOut();
+                Direction dir = oPowerN.getDir();
+                CopperPower p = dir == Direction.NORTH ? powerN
+                        : dir == Direction.EAST ? powerE
+                        : dir == Direction.SOUTH ? powerS
+                        : dir == Direction.WEST ? powerW : oPowerN;
+                CopperPower max = powerN.getCPower() == power ? powerN
+                        : powerE.getCPower() == power ? powerE
+                        : powerS.getCPower() == power ? powerS : powerW;
+
+                if ((power > p.getCPower()) && (!max.isFromRedstone() || (max.getRPower() != oPowerN.getRPower()))) {
+                    p = max;
+                }
+
+                powerN = p;
+                powerE = p;
+                powerS = p;
+                powerW = p;
+            }
         }
+
+        modified = !powerN.equals(cPowerN) || !powerE.equals(cPowerE) ||
+                !powerS.equals(cPowerS) || !powerW.equals(cPowerW);
     }
 
     public void setHop(boolean hop) {
@@ -215,10 +198,10 @@ public class CopperWireEntity extends BlockEntity {
     }
 
     public boolean changedForDirection(Direction dir) {
-        return dir == Direction.NORTH ? (powerN != oPowerN) || (srcDirN != oSrcDirN)
-                : dir == Direction.EAST ? (powerE != oPowerE) || (srcDirE != oSrcDirE)
-                : dir == Direction.SOUTH ? (powerS != oPowerS) || (srcDirS != oSrcDirS)
-                : dir == Direction.WEST && ((powerW != oPowerW) || (srcDirW != oSrcDirW));
+        return dir == Direction.NORTH ? !powerN.equals(oPowerN)
+                : dir == Direction.EAST ? !powerE.equals(oPowerE)
+                : dir == Direction.SOUTH ? !powerS.equals(oPowerS)
+                : dir == Direction.WEST && !powerW.equals(oPowerW);
     }
 
     public boolean isModified() { return modified; }
@@ -226,30 +209,30 @@ public class CopperWireEntity extends BlockEntity {
     @Override
     public void readNbt(NbtCompound nbt) {
         super.readNbt(nbt);
-
         NbtCompound data = nbt.getCompound(NBT_NAME);
-        powerN = data.getInt("powerN");
-        powerE = data.getInt("powerE");
-        powerS = data.getInt("powerS");
-        powerW = data.getInt("powerW");
-        srcDirN = Direction.byName(data.getString("srcDirN"));
-        srcDirE = Direction.byName(data.getString("srcDirE"));
-        srcDirS = Direction.byName(data.getString("srcDirS"));
-        srcDirW = Direction.byName(data.getString("srcDirW"));
+
+        powerN.setCPower(data.getInt("powerN"));
+        powerE.setCPower(data.getInt("powerE"));
+        powerS.setCPower(data.getInt("powerS"));
+        powerW.setCPower(data.getInt("powerW"));
+        powerN.setDir(Direction.byName(data.getString("srcDirN")));
+        powerE.setDir(Direction.byName(data.getString("srcDirE")));
+        powerS.setDir(Direction.byName(data.getString("srcDirS")));
+        powerW.setDir(Direction.byName(data.getString("srcDirW")));
         hop = data.getBoolean("hop");
         vertical = data.getBoolean("vertical");
 
-        if (srcDirN == null) {
-            srcDirN = Direction.DOWN;
+        if (powerN.getDir() == null) {
+            powerN.setDir(Direction.DOWN);
         }
-        if (srcDirE == null) {
-            srcDirE = Direction.DOWN;
+        if (powerE.getDir() == null) {
+            powerE.setDir(Direction.DOWN);
         }
-        if (srcDirS == null) {
-            srcDirS = Direction.DOWN;
+        if (powerS.getDir() == null) {
+            powerS.setDir(Direction.DOWN);
         }
-        if (srcDirW == null) {
-            srcDirW = Direction.DOWN;
+        if (powerW.getDir() == null) {
+            powerW.setDir(Direction.DOWN);
         }
 
         validatePower();
@@ -259,28 +242,28 @@ public class CopperWireEntity extends BlockEntity {
     }
 
     private void validatePower() {
-        if (powerN < 0) powerN = 0;
-        if (powerE < 0) powerE = 0;
-        if (powerS < 0) powerS = 0;
-        if (powerW < 0) powerW = 0;
-        while (powerN > 240) powerN >>= 4;
-        while (powerE > 240) powerE >>= 4;
-        while (powerS > 240) powerS >>= 4;
-        while (powerW > 240) powerW >>= 4;
+        if (powerN.getCPower() < 0) powerN.setCPower(0);
+        if (powerE.getCPower() < 0) powerE.setCPower(0);
+        if (powerS.getCPower() < 0) powerS.setCPower(0);
+        if (powerW.getCPower() < 0) powerW.setCPower(0);
+        if (powerN.getCPower() > 240) powerN.setCPower((powerN.getCPower() % 16) * 16);
+        if (powerE.getCPower() > 240) powerE.setCPower((powerE.getCPower() % 16) * 16);
+        if (powerS.getCPower() > 240) powerS.setCPower((powerS.getCPower() % 16) * 16);
+        if (powerW.getCPower() > 240) powerW.setCPower((powerW.getCPower() % 16) * 16);
     }
 
     @Override
     protected void writeNbt(NbtCompound nbt) {
         CopperWireMod.LOGGER.trace("Saving entity state @(" + getPos().toShortString() + "), " + toShortString());
         NbtCompound data = new NbtCompound();
-        data.putInt("powerN", powerN);
-        data.putInt("powerE", powerE);
-        data.putInt("powerS", powerS);
-        data.putInt("powerW", powerW);
-        data.putString("srcDirN", srcDirN.getName());
-        data.putString("srcDirE", srcDirE.getName());
-        data.putString("srcDirS", srcDirS.getName());
-        data.putString("srcDirW", srcDirW.getName());
+        data.putInt("powerN", powerN.getCPower());
+        data.putInt("powerE", powerE.getCPower());
+        data.putInt("powerS", powerS.getCPower());
+        data.putInt("powerW", powerW.getCPower());
+        data.putString("srcDirN", powerN.getDir().getName());
+        data.putString("srcDirE", powerE.getDir().getName());
+        data.putString("srcDirS", powerS.getDir().getName());
+        data.putString("srcDirW", powerW.getDir().getName());
         data.putBoolean("hop", hop);
         data.putBoolean("vertical", vertical);
         nbt.put(NBT_NAME, data);
@@ -309,37 +292,33 @@ public class CopperWireEntity extends BlockEntity {
     @Override
     public String toString() {
         return "CP{" +
-                "powerN=" + powerN +
-                ", srcDirN=" + srcDirN +
-                ", powerE=" + powerE +
-                ", srcDirE=" + srcDirE +
-                ", powerS=" + powerS +
-                ", srcDirS=" + srcDirS +
-                ", powerW=" + powerW +
-                ", srcDirW=" + srcDirW +
+                "powerN=" + powerN.toShortString() +
+                ", powerE=" + powerE.toShortString() +
+                ", powerS=" + powerS.toShortString() +
+                ", powerW=" + powerW.toShortString() +
                 ", modified=" + modified +
                 '}';
     }
 
     public String toShortString() {
         return "CP{" +
-                "powerN=" + powerN +
-                ", powerE=" + powerE +
-                ", powerS=" + powerS +
-                ", powerW=" + powerW +
+                "powerN=" + powerN.getCPower() +
+                ", powerE=" + powerE.getCPower() +
+                ", powerS=" + powerS.getCPower() +
+                ", powerW=" + powerW.getCPower() +
                 ", modified=" + modified +
                 '}';
     }
 
     public void clearAll() {
-        powerN = 0;
-        powerE = 0;
-        powerS = 0;
-        powerW = 0;
-        srcDirN = Direction.DOWN;
-        srcDirE = Direction.DOWN;
-        srcDirS = Direction.DOWN;
-        srcDirW = Direction.DOWN;
+        powerN.setCPower(0);
+        powerE.setCPower(0);
+        powerS.setCPower(0);
+        powerW.setCPower(0);
+        powerN.setDir(Direction.DOWN);
+        powerE.setDir(Direction.DOWN);
+        powerS.setDir(Direction.DOWN);
+        powerW.setDir(Direction.DOWN);
         vertical = false;
         hop = false;
         modified = true;
@@ -350,10 +329,6 @@ public class CopperWireEntity extends BlockEntity {
         oPowerE = powerE;
         oPowerS = powerS;
         oPowerW = powerW;
-        oSrcDirN = srcDirN;
-        oSrcDirE = srcDirE;
-        oSrcDirS = srcDirS;
-        oSrcDirW = srcDirW;
     }
 
     private void preserve() {
@@ -361,10 +336,6 @@ public class CopperWireEntity extends BlockEntity {
         cPowerE = powerE;
         cPowerS = powerS;
         cPowerW = powerW;
-        cSrcDirN = srcDirN;
-        cSrcDirE = srcDirE;
-        cSrcDirS = srcDirS;
-        cSrcDirW = srcDirW;
     }
 
     private void restore() {
@@ -372,9 +343,5 @@ public class CopperWireEntity extends BlockEntity {
         powerE = cPowerE;
         powerS = cPowerS;
         powerW = cPowerW;
-        srcDirN = cSrcDirN;
-        srcDirE = cSrcDirE;
-        srcDirS = cSrcDirS;
-        srcDirW = cSrcDirW;
     }
 }

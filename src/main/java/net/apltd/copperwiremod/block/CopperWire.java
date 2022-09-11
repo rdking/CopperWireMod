@@ -30,6 +30,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
@@ -408,6 +409,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
                 ", Current: " + cwTileEntity.toShortString() + ", CopperPower: " + newState.get(POWER));
 
         cwTileEntity.setChanging(true);
+        cwTileEntity.setHop(state.get(HOP)); //Just in case they're out of sync.
 
         if (isConnected) {
             resolveDirectedPower(state, world, pos);
@@ -527,7 +529,6 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
                     }
                 }
             }
-
         }
 
         if (dstState.isOf(ModBlocks.COPPER_POWERMETER) ||
@@ -538,7 +539,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
 
     private void resolveDirectedPower(BlockState state, World world, BlockPos pos) {
         CopperWireEntity cwTileEntity = getEntity(world, pos);
-        CopperPower[][] powers = new CopperPower[4][];
+        //CopperPower[][] powers = new CopperPower[4][];
         LOGGER.debug("****************************************\n" +
                 "*** UpdatePower@ " + pos.toShortString() + "\n" +
                 "Initial: " + cwTileEntity.toString());
@@ -549,97 +550,20 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
 
         for (Direction dir: Direction.Type.HORIZONTAL) {
             EnumProperty<WireConnection> prop = propForDirection(dir);
-            switch (dir) {
-                case NORTH -> powers[0] = (state.get(prop).isConnected())
-                        ? readPower(state, world, pos, dir) : pDefault;
-                case EAST -> powers[1] = (state.get(prop).isConnected())
-                        ? readPower(state, world, pos, dir) : pDefault;
-                case SOUTH -> powers[2] = (state.get(prop).isConnected())
-                        ? readPower(state, world, pos, dir) : pDefault;
-                case WEST -> powers[3] = (state.get(prop).isConnected())
-                        ? readPower(state, world, pos, dir) : pDefault;
-            }
-        }
+            CopperPower[] power = state.get(prop).isConnected() ? readPower(state, world, pos, dir) : pDefault;
 
-        CopperPower reserve = null;
-        CopperPower max = powers[0][0];
-
-        for (int i=0; i<4; ++i) {
-            Direction dir = (i == 0) ? Direction.NORTH : (i == 1) ? Direction.EAST
-                    : (i == 2) ? Direction.SOUTH : Direction.WEST;
-
-            int oldPower = cwTileEntity.getPowerOut(dir);
             if (state.get(VERTICAL)) {
-                if (cwTileEntity.getPowerSrcDir(dir) == Direction.DOWN) {
-                    if (powers[i][0].isFromRedstone
-                            ? CPtoRP(powers[i][0].power) <= CPtoRP(oldPower)
-                            : powers[i][0].power <= oldPower) {
-                        powers[i][0] = powers[i][1];
-                    }
-                }
-                else {
-                    if (powers[i][1].isFromRedstone
-                            ? CPtoRP(powers[i][1].power) > CPtoRP(oldPower)
-                            : powers[i][1].power > oldPower) {
-                        powers[i][0] = powers[i][1];
-                    }
-                }
-
-                cwTileEntity.setPower(dir, powers[i][0]);
-            }
-            else if (state.get(HOP)) {
-                if (i >= 2) continue;
-                Direction cDir = dir;
-                Direction sDir = cwTileEntity.getPowerSrcDir(dir);
-                if ((sDir == dir) || (sDir == Direction.DOWN)) {
-                    boolean useOpposite = powers[i+2][0].isFromRedstone
-                            ? CPtoRP(powers[i+2][0].power) > CPtoRP(oldPower)
-                            : (powers[i+2][0].power > oldPower);
-                    powers[i][0] = powers[i + (useOpposite ? 2 : 0)][0];
-                }
-                else {
-                    if (powers[i][0].isFromRedstone
-                            ? CPtoRP(powers[i][0].power) <= CPtoRP(oldPower)
-                            : powers[i][0].power <= oldPower) {
-                        powers[i][0] = powers[i+2][0];
-                        cDir = dir.getOpposite();
-                    }
-                }
-
-                cwTileEntity.setPower(cDir, powers[i][0]);
-            }
-            else {
-                Direction psDir = cwTileEntity.getPowerSrcDir(Direction.NORTH);
-                int psIndex = (psDir == Direction.NORTH) ? 0 : (psDir == Direction.EAST) ? 1
-                        : (psDir == Direction.SOUTH) ? 2 : (psDir == Direction.WEST) ? 3 : -1;
-
-                if (i == psIndex) {
-                    reserve = powers[i][0];
-                }
-                else if (powers[i][0].isFromRedstone
-                        ? (CPtoRP(powers[i][0].power) > CPtoRP(max.power)) ||
-                            (((CPtoRP(powers[i][0].power) == CPtoRP(max.power))) && (max.sDir == Direction.DOWN))
-                        : (powers[i][0].power > max.power) ||
-                            ((powers[i][0].power == max.power) && (max.sDir == Direction.DOWN))) {
-                    max = powers[i][0];
+                int oldPower = cwTileEntity.getPowerOut(dir);
+                if (power[0].isFromRedstone()
+                        ? power[0].getRPower() <= CPtoRP(oldPower)
+                        : power[0].getCPower() <= oldPower) {
+                    power[0] = power[1];
                 }
             }
+            cwTileEntity.setPower(dir, power[0]);
         }
 
-        if (reserve == null) {
-            reserve = max;
-        }
-        if (max != null) {
-            Direction pDir = cwTileEntity.getPowerSrcDir(reserve.sDir);
-            powers[0][0] = (((max.isFromRedstone || reserve.isFromRedstone)
-                    ? (CPtoRP(max.power) > CPtoRP(reserve.power)) &&
-                        (CPtoRP(max.power) != CPtoRP(cwTileEntity.getPowerOut(Direction.NORTH)))
-                    : (pDir == max.sDir)
-                        || ((max.power > reserve.power) && (max.power != cwTileEntity.getPowerOut(Direction.NORTH) - 1))))
-                    ? max : reserve;
-            cwTileEntity.setPower(Direction.NORTH, powers[0][0]);
-        }
-
+        cwTileEntity.resolve();
         LOGGER.debug("** Final: " + cwTileEntity);
     }
 
@@ -659,26 +583,27 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
 
         if (tgtState.getBlock() instanceof CopperReadyDevice) {
             if (!tgtState.isOf(this) || tgtState.get(prop).isConnected()) {
-                retval[0].power = ((CopperReadyDevice) tgtState.getBlock()).getCopperSignal(world, tgtPos, cDir, iDir);
-                retval[0].sDir = pDir;
-                retval[0].isFromCopperWire = tgtState.isOf(this);
+                retval[0].setCPower(((CopperReadyDevice) tgtState.getBlock()).getCopperSignal(world, tgtPos, cDir, iDir));
+                retval[0].setDir(pDir);
+                retval[0].setFromRedstone(false);
+                retval[0].setFromCopperWire(tgtState.isOf(this));
             }
         }
         else if (!tgtState.isOf(Blocks.REDSTONE_WIRE) || tgtState.get(prop).isConnected()) {
             int rPower = tgtState.getWeakRedstonePower(world, tgtPos, dir);
-            retval[0].power = Math.max(retval[0].power, rPower * 16);
-            retval[0].sDir = pDir;
-            retval[0].isFromRedstone = !(tgtState.getBlock() instanceof CopperReadyDevice) &&
-                    !(tgtState.getBlock() instanceof AbstractRedstoneGateBlock);
-            retval[0].isFromCopperWire = tgtState.isOf(this);
+            retval[0].setCPower(Math.max(retval[0].getCPower(), rPower * 16));
+            retval[0].setDir(pDir);
+            retval[0].setFromRedstone(tgtState.getBlock() instanceof RedstoneWireBlock);
+            retval[0].setFromCopperWire(tgtState.isOf(this));
         }
 
         if (state.get(VERTICAL)) {
             iDir = getRelevantDirection(state, pos, downState, downPos, dir, RelevantDirMode.IGNORE);
             cDir = getRelevantDirection(state, pos, downState, downPos, dir, RelevantDirMode.TARGET);
-            retval[1].sDir = getRelevantDirection(state, pos, downState, downPos, dir, RelevantDirMode.POWER);
-            retval[1].power = getCopperSignal(world, downPos, cDir, iDir);
-            retval[1].isFromCopperWire = true;
+            retval[1].setCPower(getCopperSignal(world, downPos, cDir, iDir));
+            retval[1].setDir(getRelevantDirection(state, pos, downState, downPos, dir, RelevantDirMode.POWER));
+            retval[1].setFromRedstone(false);
+            retval[1].setFromCopperWire(true);
         }
         else {
             retval[1] = retval[0];

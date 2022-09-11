@@ -33,7 +33,7 @@ public class CopperLight extends Block {
     @Nullable
     @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
-        ctx.getWorld().createAndScheduleBlockTick(ctx.getBlockPos(), this, 2);
+        ctx.getWorld().createAndScheduleBlockTick(ctx.getBlockPos(), this, 1);
         return super.getPlacementState(ctx);
     }
 
@@ -42,7 +42,7 @@ public class CopperLight extends Block {
         if (!world.isClient) {
             int power = world.getReceivedRedstonePower(pos);
             if (power != state.get(COLOR)) {
-                world.createAndScheduleBlockTick(pos, this, 2);
+                world.createAndScheduleBlockTick(pos, this, 1);
             }
         }
     }
