@@ -52,8 +52,6 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
     public static final BooleanProperty VERTICAL = BooleanProperty.of("vertical");
     public static final BooleanProperty HOP = BooleanProperty.of("hop");
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
-    private static final VoxelShape COPPER_WIRE_SHAPE =
-            Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
 
     private enum HitSpot {
         None,
@@ -292,7 +290,48 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
 
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return COPPER_WIRE_SHAPE;
+        VoxelShape retval = null;
+        VoxelShape shape;
+
+        if (!state.get(VERTICAL)) {
+            int top = state.get(HOP) ? 1 : 4;
+            retval = Block.createCuboidShape(4, 0, 4, 12, top, 12);
+        }
+        if (state.get(NORTH).isConnected()) {
+            shape = Block.createCuboidShape(4, 0, 0, 12, 1,3);
+            retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+            if (state.get(VERTICAL) || (state.get(NORTH) == WireConnection.UP)) {
+                shape = Block.createCuboidShape(5, 0, 0,10, 16, 1);
+                retval = VoxelShapes.union(retval, shape);
+            }
+        }
+        if (state.get(EAST).isConnected()) {
+            shape = Block.createCuboidShape(13, 0, 4, 16, 1,12);
+            retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+            if (state.get(VERTICAL) || (state.get(EAST) == WireConnection.UP)) {
+                shape = Block.createCuboidShape(15, 0, 5,16, 16, 10);
+                retval = VoxelShapes.union(retval, shape);
+            }
+        }
+        if (state.get(SOUTH).isConnected()) {
+            shape = Block.createCuboidShape(4, 0, 13, 12, 1,16);
+            retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+            if (state.get(VERTICAL) || (state.get(SOUTH) == WireConnection.UP)) {
+                shape = Block.createCuboidShape(5, 0, 15,10, 16, 16);
+                retval = VoxelShapes.union(retval, shape);
+            }
+        }
+        if (state.get(WEST).isConnected()) {
+            shape = Block.createCuboidShape(0, 0, 4, 3, 1,12);
+            retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+            if (state.get(VERTICAL) || (state.get(WEST) == WireConnection.UP)) {
+                shape = Block.createCuboidShape(0, 0, 5,1, 16, 10);
+                retval = VoxelShapes.union(retval, shape);
+            }
+        }
+
+        return retval;
+        //return COPPER_WIRE_SHAPE;
     }
 
     @Override
