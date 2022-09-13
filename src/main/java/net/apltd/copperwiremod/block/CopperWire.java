@@ -31,10 +31,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
-import net.minecraft.world.WorldView;
+import net.minecraft.world.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -104,8 +101,42 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
         super.appendProperties(builder);
     }
 
+    private BlockState validateState(BlockState state, BlockView world, BlockPos pos) {
+        int count = 0;
+        if (state.get(VERTICAL) && state.get(HOP)) {
+            BlockState downState = world.getBlockState(pos.down());
+            state = (downState.isOf(this)) ? state.with(HOP, false) : state.with(VERTICAL, false);
+        }
+        if (state.get(NORTH).isConnected()) ++count;
+        if (state.get(EAST).isConnected()) ++count;
+        if (state.get(SOUTH).isConnected()) ++count;
+        if (state.get(WEST).isConnected()) ++count;
+        if (count < 2) {
+            if (count == 0) {
+                state = state.with(NORTH, WireConnection.SIDE).with(SOUTH, WireConnection.SIDE);
+            }
+            else {
+                if (!state.get(NORTH).isConnected()) {
+                    state = state.with(NORTH, WireConnection.SIDE);
+                }
+                else if (!state.get(EAST).isConnected()) {
+                    state = state.with(EAST, WireConnection.SIDE);
+                }
+                else if (!state.get(SOUTH).isConnected()) {
+                    state = state.with(SOUTH, WireConnection.SIDE);
+                }
+                else if (!state.get(WEST).isConnected()) {
+                    state = state.with(WEST, WireConnection.SIDE);
+                }
+            }
+        }
+
+        return state;
+    }
+
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
+        validateState(newState, world, pos);
         if (!moved) {
             for (Direction direction : Direction.values()) {
                 if (isWallInDirection(world, direction, pos)) {
@@ -292,46 +323,59 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
     public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
         VoxelShape retval = null;
         VoxelShape shape;
+        boolean vertical = state.get(VERTICAL);
 
-        if (!state.get(VERTICAL)) {
-            int top = state.get(HOP) ? 1 : 4;
+        if (!vertical) {
+            int top = state.get(HOP) ? 4 : 1;
             retval = Block.createCuboidShape(4, 0, 4, 12, top, 12);
         }
         if (state.get(NORTH).isConnected()) {
-            shape = Block.createCuboidShape(4, 0, 0, 12, 1,3);
-            retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
-            if (state.get(VERTICAL) || (state.get(NORTH) == WireConnection.UP)) {
-                shape = Block.createCuboidShape(5, 0, 0,10, 16, 1);
-                retval = VoxelShapes.union(retval, shape);
+            if (!vertical) {
+                shape = Block.createCuboidShape(4, 0, 0, 12, 1, 4);
+                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+            }
+            if (vertical || (state.get(NORTH) == WireConnection.UP)) {
+                shape = Block.createCuboidShape(6, 1, 0, 10, 17, 1);
+                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
             }
         }
         if (state.get(EAST).isConnected()) {
-            shape = Block.createCuboidShape(13, 0, 4, 16, 1,12);
-            retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
-            if (state.get(VERTICAL) || (state.get(EAST) == WireConnection.UP)) {
-                shape = Block.createCuboidShape(15, 0, 5,16, 16, 10);
-                retval = VoxelShapes.union(retval, shape);
+            if (!vertical) {
+                shape = Block.createCuboidShape(12, 0, 4, 16, 1, 12);
+                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+            }
+            if (vertical || (state.get(EAST) == WireConnection.UP)) {
+                shape = Block.createCuboidShape(15, 1, 6, 16, 17, 10);
+                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
             }
         }
         if (state.get(SOUTH).isConnected()) {
-            shape = Block.createCuboidShape(4, 0, 13, 12, 1,16);
-            retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
-            if (state.get(VERTICAL) || (state.get(SOUTH) == WireConnection.UP)) {
-                shape = Block.createCuboidShape(5, 0, 15,10, 16, 16);
-                retval = VoxelShapes.union(retval, shape);
+            if (!vertical) {
+                shape = Block.createCuboidShape(4, 0, 12, 12, 1, 16);
+                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+            }
+            if (vertical || (state.get(SOUTH) == WireConnection.UP)) {
+                shape = Block.createCuboidShape(6, 1, 15, 10, 17, 16);
+                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
             }
         }
         if (state.get(WEST).isConnected()) {
-            shape = Block.createCuboidShape(0, 0, 4, 3, 1,12);
-            retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
-            if (state.get(VERTICAL) || (state.get(WEST) == WireConnection.UP)) {
-                shape = Block.createCuboidShape(0, 0, 5,1, 16, 10);
-                retval = VoxelShapes.union(retval, shape);
+            if (!vertical) {
+                shape = Block.createCuboidShape(0, 0, 4, 4, 1, 12);
+                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
             }
+            if (vertical || (state.get(WEST) == WireConnection.UP)) {
+                shape = Block.createCuboidShape(0, 1, 6, 1, 17, 10);
+                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+            }
+        }
+        if (retval == null) {
+            LOGGER.debug("What the hell?");
+            state = validateState(state, world, pos);
+            retval = getOutlineShape(state, world, pos, context);
         }
 
         return retval;
-        //return COPPER_WIRE_SHAPE;
     }
 
     @Override
