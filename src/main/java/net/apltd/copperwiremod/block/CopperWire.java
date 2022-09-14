@@ -237,7 +237,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
     @Override
     public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
         /* Necessary to block side effects of AbstractRedstoneGateBlock. */
-        world.updateNeighbor(pos, this, pos);
+        world.updateNeighbor(pos.up(), this, pos);
     }
 
     @Override
@@ -251,7 +251,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
             check |= state.get(prop) == WireConnection.UP;
         }
         if (check && upState.isOf(this)) {
-            world.createAndScheduleBlockTick(pos.up(), this, 1);
+            world.createAndScheduleBlockTick(pos, this, 1);
         }
         CopperWire.dropStacks(state, world, pos);
     }
@@ -354,11 +354,11 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
         if (state.isOf(this)) {
             if (!vertical) {
                 int top = state.get(HOP) ? 4 : 1;
-                retval = Block.createCuboidShape(4, 0, 4, 12, top, 12);
+                retval = Block.createCuboidShape(3, 0, 3, 13, top, 13);
             }
             if (state.get(NORTH).isConnected()) {
                 if (!vertical) {
-                    shape = Block.createCuboidShape(4, 0, 0, 12, 1, 4);
+                    shape = Block.createCuboidShape(3, 0, 0, 13, 1, 4);
                     retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
                 }
                 if (vertical || (state.get(NORTH) == WireConnection.UP)) {
@@ -368,7 +368,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
             }
             if (state.get(EAST).isConnected()) {
                 if (!vertical) {
-                    shape = Block.createCuboidShape(12, 0, 4, 16, 1, 12);
+                    shape = Block.createCuboidShape(13, 0, 3, 16, 1, 13);
                     retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
                 }
                 if (vertical || (state.get(EAST) == WireConnection.UP)) {
@@ -378,7 +378,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
             }
             if (state.get(SOUTH).isConnected()) {
                 if (!vertical) {
-                    shape = Block.createCuboidShape(4, 0, 12, 12, 1, 16);
+                    shape = Block.createCuboidShape(3, 0, 13, 13, 1, 16);
                     retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
                 }
                 if (vertical || (state.get(SOUTH) == WireConnection.UP)) {
@@ -388,7 +388,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
             }
             if (state.get(WEST).isConnected()) {
                 if (!vertical) {
-                    shape = Block.createCuboidShape(0, 0, 4, 4, 1, 12);
+                    shape = Block.createCuboidShape(0, 0, 3, 3, 1, 13);
                     retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
                 }
                 if (vertical || (state.get(WEST) == WireConnection.UP)) {
@@ -734,29 +734,38 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
 
     private HitSpot getHitSpot(BlockHitResult hit) {
         HitSpot retval = HitSpot.None;
-        if (hit.getSide() == Direction.UP) {
-            BlockPos pos = hit.getBlockPos();
-            Vec3d loc = hit.getPos();
-            int x = (int) ((loc.getX() - pos.getX()) * 16);
-            int z = (int) ((loc.getZ() - pos.getZ()) * 16);
+        BlockPos pos = hit.getBlockPos();
+        Vec3d loc = hit.getPos();
+        double x = ((loc.getX() - pos.getX()) * 16);
+        double y = ((loc.getY() - pos.getY()) * 16);
+        double z = ((loc.getZ() - pos.getZ()) * 16);
 
-            if ((x >= 6) && (x < 10) && (z >= 6) && (z < 10)) {
-                retval = HitSpot.Center;
-            } else if (z < 8) {
-                if (x < z) {
-                    retval = HitSpot.West;
-                } else if (x > 15 - z) {
-                    retval = HitSpot.East;
+        switch (hit.getSide()) {
+            case NORTH -> retval = (y > 1) ? HitSpot.Center : HitSpot.North;
+            case EAST -> retval = (y > 1) ? HitSpot.Center : HitSpot.East;
+            case SOUTH -> retval = (y > 1) ? HitSpot.Center : HitSpot.South;
+            case WEST -> retval = (y > 1) ? HitSpot.Center : HitSpot.West;
+            case UP -> {
+                if ((y > 1) && (x > 1) && (x < 15) && (z > 1) && (z < 15)) {
+                    retval = HitSpot.Center;
+                } else if ((x >= 6) && (x < 10) && (z >= 6) && (z < 10)) {
+                    retval = HitSpot.Center;
+                } else if (z < 8) {
+                    if (x < z) {
+                        retval = HitSpot.West;
+                    } else if (x > 15 - z) {
+                        retval = HitSpot.East;
+                    } else {
+                        retval = HitSpot.North;
+                    }
                 } else {
-                    retval = HitSpot.North;
-                }
-            } else {
-                if (x < 15 - z) {
-                    retval = HitSpot.West;
-                } else if (x > z) {
-                    retval = HitSpot.East;
-                } else {
-                    retval = HitSpot.South;
+                    if (x < 15 - z) {
+                        retval = HitSpot.West;
+                    } else if (x > z) {
+                        retval = HitSpot.East;
+                    } else {
+                        retval = HitSpot.South;
+                    }
                 }
             }
         }
