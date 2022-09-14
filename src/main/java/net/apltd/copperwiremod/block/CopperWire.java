@@ -133,7 +133,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
                     ++count;
                 }
             }
-            if (!state.get(VERTICAL) && (count < 2)) {
+            if (count < (state.get(VERTICAL) ? 1 : 2)) {
                 if (count == 0) {
                     state = state.with(NORTH, WireConnection.SIDE).with(SOUTH, WireConnection.SIDE);
                 } else {
