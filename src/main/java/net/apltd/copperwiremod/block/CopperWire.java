@@ -113,10 +113,17 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
             if (state.get(VERTICAL)) {
                 for (Direction dir : Direction.Type.HORIZONTAL) {
                     EnumProperty<WireConnection> prop = propForDirection(dir);
-                    if (downState.isOf(this) &&
-                            ((downState.get(prop) == WireConnection.UP) || (state.get(prop) == WireConnection.UP)) &&
-                            (state.get(prop) != downState.get(prop))) {
-                        state = state.with(prop, downState.get(prop));
+                    if (downState.isOf(this)) {
+                        if ((downState.get(prop) == WireConnection.UP)) {
+                            if (state.get(prop) != downState.get(prop)) {
+                                state = state.with(prop, downState.get(prop));
+                            }
+                        }
+                        else {
+                            if (state.get(prop) != WireConnection.NONE) {
+                                state.with(prop, WireConnection.NONE);
+                            }
+                        }
                     }
                 }
             }
