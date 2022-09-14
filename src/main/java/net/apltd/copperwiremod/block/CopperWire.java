@@ -121,7 +121,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
                         }
                         else {
                             if (state.get(prop) != WireConnection.NONE) {
-                                state.with(prop, WireConnection.NONE);
+                                state = state.with(prop, WireConnection.NONE);
                             }
                         }
                     }
@@ -133,7 +133,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
                     ++count;
                 }
             }
-            if (count < 2) {
+            if (!state.get(VERTICAL) && (count < 2)) {
                 if (count == 0) {
                     state = state.with(NORTH, WireConnection.SIDE).with(SOUTH, WireConnection.SIDE);
                 } else {
