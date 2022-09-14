@@ -103,30 +103,39 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
 
     private BlockState validateState(BlockState state, BlockView world, BlockPos pos) {
         int count = 0;
-        if (state.get(VERTICAL) && state.get(HOP)) {
-            BlockState downState = world.getBlockState(pos.down());
-            state = (downState.isOf(this)) ? state.with(HOP, false) : state.with(VERTICAL, false);
-        }
-        if (state.get(NORTH).isConnected()) ++count;
-        if (state.get(EAST).isConnected()) ++count;
-        if (state.get(SOUTH).isConnected()) ++count;
-        if (state.get(WEST).isConnected()) ++count;
-        if (count < 2) {
-            if (count == 0) {
-                state = state.with(NORTH, WireConnection.SIDE).with(SOUTH, WireConnection.SIDE);
+        BlockState downState = world.getBlockState(pos.down());
+        if (state.isOf(this)) {
+            if (state.get(VERTICAL) && state.get(HOP)) {
+                state = (downState.isOf(this))
+                        ? state.with(HOP, false)
+                        : state.with(VERTICAL, false);
             }
-            else {
-                if (!state.get(NORTH).isConnected()) {
-                    state = state.with(NORTH, WireConnection.SIDE);
+            if (state.get(VERTICAL)) {
+                for (Direction dir : Direction.Type.HORIZONTAL) {
+                    EnumProperty<WireConnection> prop = propForDirection(dir);
+                    if (downState.isOf(this) &&
+                            ((downState.get(prop) == WireConnection.UP) || (state.get(prop) == WireConnection.UP)) &&
+                            (state.get(prop) != downState.get(prop))) {
+                        state = state.with(prop, downState.get(prop));
+                    }
                 }
-                else if (!state.get(EAST).isConnected()) {
-                    state = state.with(EAST, WireConnection.SIDE);
+            }
+            for (Direction dir : Direction.Type.HORIZONTAL) {
+                EnumProperty<WireConnection> prop = propForDirection(dir);
+                if (state.get(prop).isConnected()) {
+                    ++count;
                 }
-                else if (!state.get(SOUTH).isConnected()) {
-                    state = state.with(SOUTH, WireConnection.SIDE);
-                }
-                else if (!state.get(WEST).isConnected()) {
-                    state = state.with(WEST, WireConnection.SIDE);
+            }
+            if (count < 2) {
+                if (count == 0) {
+                    state = state.with(NORTH, WireConnection.SIDE).with(SOUTH, WireConnection.SIDE);
+                } else {
+                    for (Direction dir : Direction.Type.HORIZONTAL) {
+                        EnumProperty<WireConnection> prop = propForDirection(dir);
+                        if (!state.get(prop).isConnected()) {
+                            state = state.with(prop, WireConnection.SIDE);
+                        }
+                    }
                 }
             }
         }
@@ -228,6 +237,23 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
     @Override
     public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
         /* Necessary to block side effects of AbstractRedstoneGateBlock. */
+        world.updateNeighbor(pos, this, pos);
+    }
+
+    @Override
+    public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        boolean check = false;
+        BlockState upState = world.getBlockState(pos.up());
+
+        super.onBreak(world, pos, state, player);
+        for (Direction dir: Direction.Type.HORIZONTAL) {
+            EnumProperty<WireConnection> prop = propForDirection(dir);
+            check |= state.get(prop) == WireConnection.UP;
+        }
+        if (check && upState.isOf(this)) {
+            world.createAndScheduleBlockTick(pos.up(), this, 1);
+        }
+        CopperWire.dropStacks(state, world, pos);
     }
 
     @Override
@@ -325,54 +351,59 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
         VoxelShape shape;
         boolean vertical = state.get(VERTICAL);
 
-        if (!vertical) {
-            int top = state.get(HOP) ? 4 : 1;
-            retval = Block.createCuboidShape(4, 0, 4, 12, top, 12);
-        }
-        if (state.get(NORTH).isConnected()) {
+        if (state.isOf(this)) {
             if (!vertical) {
-                shape = Block.createCuboidShape(4, 0, 0, 12, 1, 4);
-                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+                int top = state.get(HOP) ? 4 : 1;
+                retval = Block.createCuboidShape(4, 0, 4, 12, top, 12);
             }
-            if (vertical || (state.get(NORTH) == WireConnection.UP)) {
-                shape = Block.createCuboidShape(6, 1, 0, 10, 17, 1);
-                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+            if (state.get(NORTH).isConnected()) {
+                if (!vertical) {
+                    shape = Block.createCuboidShape(4, 0, 0, 12, 1, 4);
+                    retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+                }
+                if (vertical || (state.get(NORTH) == WireConnection.UP)) {
+                    shape = Block.createCuboidShape(6, 1, 0, 10, 17, 1);
+                    retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+                }
+            }
+            if (state.get(EAST).isConnected()) {
+                if (!vertical) {
+                    shape = Block.createCuboidShape(12, 0, 4, 16, 1, 12);
+                    retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+                }
+                if (vertical || (state.get(EAST) == WireConnection.UP)) {
+                    shape = Block.createCuboidShape(15, 1, 6, 16, 17, 10);
+                    retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+                }
+            }
+            if (state.get(SOUTH).isConnected()) {
+                if (!vertical) {
+                    shape = Block.createCuboidShape(4, 0, 12, 12, 1, 16);
+                    retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+                }
+                if (vertical || (state.get(SOUTH) == WireConnection.UP)) {
+                    shape = Block.createCuboidShape(6, 1, 15, 10, 17, 16);
+                    retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+                }
+            }
+            if (state.get(WEST).isConnected()) {
+                if (!vertical) {
+                    shape = Block.createCuboidShape(0, 0, 4, 4, 1, 12);
+                    retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+                }
+                if (vertical || (state.get(WEST) == WireConnection.UP)) {
+                    shape = Block.createCuboidShape(0, 1, 6, 1, 17, 10);
+                    retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
+                }
+            }
+            if (retval == null) {
+                LOGGER.debug("What the hell?");
+                state = validateState(state, world, pos);
+                retval = getOutlineShape(state, world, pos, context);
             }
         }
-        if (state.get(EAST).isConnected()) {
-            if (!vertical) {
-                shape = Block.createCuboidShape(12, 0, 4, 16, 1, 12);
-                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
-            }
-            if (vertical || (state.get(EAST) == WireConnection.UP)) {
-                shape = Block.createCuboidShape(15, 1, 6, 16, 17, 10);
-                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
-            }
-        }
-        if (state.get(SOUTH).isConnected()) {
-            if (!vertical) {
-                shape = Block.createCuboidShape(4, 0, 12, 12, 1, 16);
-                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
-            }
-            if (vertical || (state.get(SOUTH) == WireConnection.UP)) {
-                shape = Block.createCuboidShape(6, 1, 15, 10, 17, 16);
-                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
-            }
-        }
-        if (state.get(WEST).isConnected()) {
-            if (!vertical) {
-                shape = Block.createCuboidShape(0, 0, 4, 4, 1, 12);
-                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
-            }
-            if (vertical || (state.get(WEST) == WireConnection.UP)) {
-                shape = Block.createCuboidShape(0, 1, 6, 1, 17, 10);
-                retval = (retval == null) ? shape : VoxelShapes.union(retval, shape);
-            }
-        }
-        if (retval == null) {
-            LOGGER.debug("What the hell?");
-            state = validateState(state, world, pos);
-            retval = getOutlineShape(state, world, pos, context);
+        else {
+            retval = super.getOutlineShape(state, world, pos, context);
         }
 
         return retval;
@@ -382,6 +413,12 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
         if (!world.isClient()) {
             if (state.canPlaceAt(world, pos)) {
+                BlockState newState = validateState(state, world, pos);
+                if (newState != state) {
+                    LOGGER.info("POS: " + pos.toShortString());
+                    world.setBlockState(pos, newState, Block.NOTIFY_ALL);
+                    state = newState;
+                }
                 this.update(world, pos, state, sourcePos);
             } else {
                 CopperWire.dropStacks(state, world, pos);
