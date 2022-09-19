@@ -95,6 +95,25 @@ public class CopperWireEntity extends BlockEntity {
         return retval;
     }
 
+    public void setVerticalPower(Direction cDir, CopperPower uPower, CopperPower dPower) {
+        boolean isRedstone = uPower.isFromRedstone() || dPower.isFromRedstone();
+        int power = isRedstone
+                ? Math.max(uPower.getRPower(), dPower.getRPower()) * 16
+                : Math.max(uPower.getCPower(), dPower.getCPower());
+        Direction dir = cDir == Direction.NORTH ? oPowerN.getDir()
+                : cDir == Direction.EAST ? oPowerE.getDir()
+                : cDir == Direction.SOUTH ? oPowerS.getDir()
+                : oPowerW.getDir();
+        CopperPower p = dir == uPower.getDir() ? uPower : dPower;
+        CopperPower max = uPower.getCPower() > dPower.getCPower() ? uPower : dPower;
+
+        if ((power > p.getCPower()) && (!max.isFromRedstone() || (max.getRPower() != oPowerN.getRPower()))) {
+            p = max;
+        }
+
+        setPower(cDir, p);
+    }
+
     public void setPower(Direction cDir, CopperPower power) {
         power.setCPower(Math.max(0, power.getCPower() - (power.isFromCopperWire() ? 1 : 0)));
         if (changing) {
@@ -179,6 +198,14 @@ public class CopperWireEntity extends BlockEntity {
         modified = (hop != this.hop);
         if (modified) {
             this.hop = hop;
+            setChanged();
+        }
+    }
+
+    public void setVertical(boolean vertical) {
+        modified = (vertical != this.vertical);
+        if (modified) {
+            this.vertical = vertical;
             setChanged();
         }
     }

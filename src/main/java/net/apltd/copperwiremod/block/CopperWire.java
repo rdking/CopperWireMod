@@ -113,14 +113,17 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
             if (state.get(VERTICAL)) {
                 for (Direction dir : Direction.Type.HORIZONTAL) {
                     EnumProperty<WireConnection> prop = propForDirection(dir);
+                    boolean canPlace = isWallInDirection((World) world, dir, pos);
                     if (downState.isOf(this)) {
                         if ((downState.get(prop) == WireConnection.UP)) {
-                            if (state.get(prop) != downState.get(prop)) {
+                            if (canPlace && (downState.get(prop) == WireConnection.UP) &&
+                                    (state.get(prop) != downState.get(prop))) {
                                 state = state.with(prop, downState.get(prop));
                             }
                         }
                         else {
-                            if (state.get(prop) != WireConnection.NONE) {
+                            if (canPlace && (state.get(prop) == WireConnection.UP) &&
+                                    (state.get(prop) != WireConnection.NONE)) {
                                 state = state.with(prop, WireConnection.NONE);
                             }
                         }
@@ -209,7 +212,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
         if (state.get(WATERLOGGED)) {
             world.createAndScheduleBlockTick(pos, Blocks.WATER, Fluids.WATER.getTickRate(world));
-            updatePower(state, state, (World)world, pos, true, true);
+            updatePower(state, (World)world, pos, true, true);
         }
         return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
     }
@@ -237,7 +240,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
         entity.clearAll();
 
         if (!world.isClient) {
-            updatePower(state, state, world, pos, true, true);
+            updatePower(state, world, pos, true, true);
         }
     }
 
@@ -274,7 +277,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
                 if (!state.get(VERTICAL) && handleWireHit(world, state, pos, getHitSpot(hit))) {
                     retval = ActionResult.SUCCESS;
                     if (!world.isClient) {
-                        BlockState newState = world.getBlockState(pos);
+                        BlockState newState = validateState(world.getBlockState(pos), world, pos);
                         updateConnectedNeighbors(newState, world, pos);
                         if (newState != state) {
                             if (newState.get(HOP) && !state.get(HOP)) {
@@ -297,7 +300,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
                             entity.setChanging(false);
                         }
 
-                        updatePower(newState, state, world, pos, false, true);
+                        updatePower(newState, world, pos, false, true);
                     }
                 } else {
                     retval = ActionResult.CONSUME;
@@ -485,7 +488,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
         changed |= (state != newState);
         isConnected |= (newState.get(NORTH) != WireConnection.NONE) || (newState.get(EAST) != WireConnection.NONE)
                 || (newState.get(SOUTH) != WireConnection.NONE) || (newState.get(WEST) != WireConnection.NONE);
-        updatePower(newState, state, world, pos, changed, isConnected);
+        updatePower(newState, world, pos, changed, isConnected);
     }
 
     private int CPtoRP(int cp) {
@@ -528,7 +531,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
         return newState;
     }
 
-    private void updatePower(BlockState state, BlockState oldState, World world, BlockPos pos,
+    private void updatePower(BlockState state, World world, BlockPos pos,
                              boolean changed, boolean isConnected) {
         CopperWireEntity cwTileEntity = getEntity(world, pos);
         BlockState newState = state;
@@ -537,6 +540,7 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
 
         cwTileEntity.setChanging(true);
         cwTileEntity.setHop(state.get(HOP)); //Just in case they're out of sync.
+        cwTileEntity.setVertical(state.get(VERTICAL));
 
         if (isConnected) {
             resolveDirectedPower(state, world, pos);
@@ -562,18 +566,6 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
         }
 
         cwTileEntity.setChanging(false);
-
-        if (state != oldState) {
-            world.updateNeighborsAlways(pos, this);
-            for (Direction dir : Direction.Type.HORIZONTAL) {
-                EnumProperty<WireConnection> prop = propForDirection(dir);
-
-                if (state.get(prop) != oldState.get(prop)) {
-                    world.updateNeighborsAlways(pos.offset(dir), this);
-                    world.updateNeighbor(getRelevantPosition(world, pos, dir), this, pos);
-                }
-            }
-        }
     }
 
     private boolean isValueAdjacent(World world, BlockState state, BlockPos pos, BlockPos tgtPos, Direction dir) {
@@ -680,14 +672,11 @@ public class CopperWire extends AbstractRedstoneGateBlock implements CopperReady
             CopperPower[] power = state.get(prop).isConnected() ? readPower(state, world, pos, dir) : pDefault;
 
             if (state.get(VERTICAL)) {
-                int oldPower = cwTileEntity.getPowerOut(dir);
-                if (power[0].isFromRedstone()
-                        ? power[0].getRPower() <= CPtoRP(oldPower)
-                        : power[0].getCPower() <= oldPower) {
-                    power[0] = power[1];
-                }
+                cwTileEntity.setVerticalPower(dir, power[0], power[1]);
             }
-            cwTileEntity.setPower(dir, power[0]);
+            else {
+                cwTileEntity.setPower(dir, power[0]);
+            }
         }
 
         cwTileEntity.resolve();
