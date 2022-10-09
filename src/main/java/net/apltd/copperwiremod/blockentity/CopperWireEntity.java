@@ -146,10 +146,12 @@ public class CopperWireEntity extends BlockEntity {
     public void resolve() {
         if (!vertical) {
             if (hop) {
-                int pN = powerN.getCPower();
-                int pE = powerE.getCPower();
-                int pS = powerS.getCPower();
-                int pW = powerW.getCPower();
+                boolean hRed = powerE.isFromRedstone() || powerW.isFromRedstone();
+                boolean vRed = powerN.isFromRedstone() || powerS.isFromRedstone();
+                int pN = vRed ? powerN.getRPower() : powerN.getCPower();
+                int pE = hRed ? powerE.getRPower() : powerE.getCPower();
+                int pS = vRed ? powerS.getRPower() : powerS.getCPower();
+                int pW = hRed ? powerW.getRPower() : powerW.getCPower();
 
                 if (pE != pW) {
                     if (pE > pW) {
@@ -157,6 +159,18 @@ public class CopperWireEntity extends BlockEntity {
                     }
                     else {
                         powerE = powerW;
+                    }
+                }
+                else {
+                    Direction dE = powerE.getDir();
+                    Direction dW = powerW.getDir();
+                    if (dE != dW) {
+                        if (dE == oPowerE.getDir()) {
+                            powerW = powerE;
+                        }
+                        else if (dW == oPowerW.getDir()) {
+                            powerE = powerW;
+                        }
                     }
                 }
                 if (pN != pS) {
@@ -167,6 +181,19 @@ public class CopperWireEntity extends BlockEntity {
                         powerN = powerS;
                     }
                 }
+                else {
+                    Direction dN = powerN.getDir();
+                    Direction dS = powerS.getDir();
+                    if (dN != dS) {
+                        if (dN == oPowerN.getDir()) {
+                            powerS = powerN;
+                        }
+                        else if (dS == oPowerS.getDir()) {
+                            powerN = powerS;
+                        }
+                    }
+                }
+
             }
             else {
                 int power = getMaxPowerOut();
