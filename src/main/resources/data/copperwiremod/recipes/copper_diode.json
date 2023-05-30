@@ -1,23 +1,23 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "   ",
-    "SCS",
-    " R "
+    " C ",
+    "CRC",
+    "SCS"
   ],
   "key": {
     "C": {
       "item": "copperwiremod:copperwire"
     },
-    "R": {
+    "S": {
       "item": "minecraft:stone_slab"
     },
-    "S": {
-      "item": "minecraft:sand"
+    "R": {
+      "item": "minecraft:redstone_torch"
     }
   },
   "result": {
-    "item": "copperwiremod:copper_pmeter",
+    "item": "copperwiremod:copper_diode",
     "count": 1
   }
 }

@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "copperwiremod:copper_resistor"
+          "name": "copperwiremod:copper_diode"
         }
       ],
       "conditions": [

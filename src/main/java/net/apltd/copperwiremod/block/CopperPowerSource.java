@@ -1,6 +1,5 @@
 package net.apltd.copperwiremod.block;
 
-import static net.apltd.copperwiremod.util.CopperTools.CPtoRP;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.WallMountLocation;
 import net.minecraft.client.item.TooltipContext;
@@ -25,7 +24,8 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public class CopperPowerSource extends Block implements CopperReadyDevice{
     public static final String BLOCK_NAME = "copper_psrc";
-    public static final IntProperty CPOWER = IntProperty.of("cpower", 0, 240);
+    public static final IntProperty POWER = RedstoneWireBlock.POWER;
+    public static final IntProperty STEP = CopperWire.STEP;
     public static final BooleanProperty POWERED = LeverBlock.POWERED;
 
     public CopperPowerSource(AbstractBlock.Settings settings) {
@@ -42,14 +42,16 @@ public class CopperPowerSource extends Block implements CopperReadyDevice{
 
         setDefaultState(
                 getStateManager().getDefaultState()
-                        .with(CPOWER, 15)
+                        .with(POWER, 15)
+                        .with(STEP, 15)
                         .with(POWERED, false)
         );
     }
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(CPOWER);
+        builder.add(POWER);
+        builder.add(STEP);
         builder.add(POWERED);
         super.appendProperties(builder);
     }
@@ -61,10 +63,15 @@ public class CopperPowerSource extends Block implements CopperReadyDevice{
     }
 
     @Override
-    public int getCopperSignal(BlockView world, BlockPos pos, Direction dir, Direction iDir) {
+    public int getCopperSignal(BlockView world, BlockPos pos, Direction dir) {
         BlockState state = world.getBlockState(pos);
-        int power = state.get(CPOWER);
-        return state.get(POWERED) ? power : power * 16;
+        return state.get(POWER) << 4 | state.get(STEP);
+    }
+
+    @Override
+    public int getPowerStep(BlockView world, BlockPos pos, Direction dir) {
+        BlockState state = world.getBlockState(pos);
+        return state.get(STEP);
     }
 
     @Override
@@ -72,8 +79,7 @@ public class CopperPowerSource extends Block implements CopperReadyDevice{
 
     @Override
     public int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        int power = state.get(CPOWER);
-        return state.get(POWERED) ? CPtoRP(power) : power;
+        return state.get(POWER);
     }
 
     @Override
@@ -84,11 +90,30 @@ public class CopperPowerSource extends Block implements CopperReadyDevice{
                 retval = ActionResult.PASS;
             } else if (hit.getType() == HitResult.Type.BLOCK) {
                 retval = ActionResult.SUCCESS;
-                int power = state.get(CPOWER) - 1;
-                if (power < 0) {
-                    power = state.get(POWERED) ? 240 : 15;
+                boolean powered = state.get(POWERED);
+                int power = state.get(POWER) - (powered ? 0 : 1);
+                int step = state.get(STEP) - (powered ? 1: 0);
+
+                if (step < 0) {
+                    --power;
+                    step = 15;
                 }
-                state = state.with(CPOWER, power);
+
+                if (power < 1) {
+                    if (power < 0) {
+                        power = 15;
+                        step = 15;
+                    }
+                    else {
+                        step = 0;
+                    }
+                }
+
+                if (!powered && (power > 0)) {
+                    step = 15;
+                }
+
+                state = state.with(POWER, power).with(STEP, step);
                 world.setBlockState(pos, state, Block.NOTIFY_LISTENERS);
                 world. updateNeighborsAlways(pos, this);
             }
@@ -114,8 +139,7 @@ public class CopperPowerSource extends Block implements CopperReadyDevice{
             }
 
             if (state.get(POWERED) != powered) {
-                int power = state.get(CPOWER);
-                state = state.with(CPOWER, powered ? power * 16 : CPtoRP(power)).with(POWERED, powered);
+                state = state.with(POWERED, powered);
                 world.setBlockState(pos, state, Block.NOTIFY_ALL);
                 world.updateNeighborsAlways(pos, this);
             }

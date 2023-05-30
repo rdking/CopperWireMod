@@ -1,0 +1,156 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_base"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_base",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_base",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_base",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "left": true
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_post",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "front": true
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_post",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "right": true
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_post",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "left": true
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_post",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "front": true
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_post",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "right": true
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_post"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "left": true
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_post",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "front": true
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_post"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "right": true
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_post",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "left": true
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_post"
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "front": true
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_post",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "right": true
+      },
+      "apply": {
+        "model": "copperwiremod:block/copper_diode_post",
+        "y": 180
+      }
+    }
+  ]
+}

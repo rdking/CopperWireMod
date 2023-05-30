@@ -31,8 +31,8 @@ public class ModBlocks {
                     .solidBlock((BlockState state, BlockView world, BlockPos pos) -> true)
             ), ItemGroup.REDSTONE);
 
-    public static final Block COPPER_RESISTOR = registerBlock(CopperResistor.BLOCK_NAME,
-            new CopperResistor(FabricBlockSettings.copy(Blocks.REPEATER)
+    public static final Block COPPER_DIODE = registerBlock(CopperDiode.BLOCK_NAME,
+            new CopperDiode(FabricBlockSettings.copy(Blocks.REPEATER)
                     .nonOpaque()
                     .solidBlock((BlockState state, BlockView world, BlockPos pos) -> false)
             ), ItemGroup.REDSTONE);

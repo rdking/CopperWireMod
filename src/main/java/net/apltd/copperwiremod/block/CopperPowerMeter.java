@@ -1,6 +1,5 @@
 package net.apltd.copperwiremod.block;
 
-import static net.apltd.copperwiremod.util.CopperTools.*;
 import net.minecraft.block.*;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.LivingEntity;
@@ -26,7 +25,8 @@ import java.util.List;
 public class CopperPowerMeter extends Block {
     public static final String BLOCK_NAME = "copper_pmeter";
     public static final BooleanProperty MODE = BooleanProperty.of("mode");
-    public static final IntProperty CPOWER = CopperPowerSource.CPOWER;
+    public static final IntProperty POWER = RedstoneWireBlock.POWER;
+    public static final IntProperty STEP = CopperWire.STEP;
 
 
     public CopperPowerMeter(AbstractBlock.Settings settings) {
@@ -34,10 +34,7 @@ public class CopperPowerMeter extends Block {
                 .luminance((BlockState blockState) -> {
                     int retval = 0;
                     if (blockState.isOf(ModBlocks.COPPER_POWERMETER)) {
-                        retval = blockState.get(CopperPowerMeter.MODE)
-                                ? CPtoRP(blockState.get(CopperPowerMeter.CPOWER))
-                                : blockState.get(CopperPowerMeter.CPOWER);
-
+                        retval = blockState.get(POWER);
                     }
                     return retval;
                 })
@@ -46,14 +43,16 @@ public class CopperPowerMeter extends Block {
         setDefaultState(
                 getStateManager().getDefaultState()
                         .with(MODE, false)
-                        .with(CPOWER, 0)
+                        .with(POWER, 0)
+                        .with(STEP, 0)
         );
     }
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         builder.add(MODE);
-        builder.add(CPOWER);
+        builder.add(POWER);
+        builder.add(STEP);
         super.appendProperties(builder);
     }
 
@@ -79,9 +78,8 @@ public class CopperPowerMeter extends Block {
                 retval = ActionResult.PASS;
             } else if (hit.getType() == HitResult.Type.BLOCK) {
                 boolean mode = !state.get(MODE);
-                int power = mode ? state.get(CPOWER) * 16 : CPtoRP(state.get(CPOWER));
                 retval = ActionResult.SUCCESS;
-                state = state.with(MODE, mode).with(CPOWER, power);
+                state = state.with(MODE, mode);
                 world.setBlockState(pos, state, Block.NOTIFY_LISTENERS);
                 world.updateNeighborsAlways(pos, this);
             }
@@ -93,67 +91,22 @@ public class CopperPowerMeter extends Block {
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
         if (!world.isClient) {
             int max = 0;
-            for (Direction dir: Direction.values()) {
+
+            for (Direction dir : Direction.values()) {
                 BlockPos dPos = pos.offset(dir);
                 BlockState dState = world.getBlockState(dPos);
-                Direction dDir = Direction.Type.VERTICAL.test(dir) ? Direction.NORTH : dir.getOpposite();
-                if (state.get(MODE)) {
-                    if ((dState.getBlock() instanceof CopperReadyDevice) &&
-                            ((!dState.isOf(ModBlocks.COPPER_WIRE) ||
-                                    (Direction.Type.VERTICAL.test(dir) ||
-                                            (!dState.get(CopperWire.VERTICAL) &&
-                                                    dState.get(propForDirection(dir)).isConnected()))))) {
-                        max = Math.max(max, ((CopperReadyDevice)dState.getBlock())
-                                .getCopperSignal(world, dPos, dDir, null));
-                    }
-                    else {
-                        if (Direction.Type.VERTICAL.test(dir) && dState.isOf(Blocks.REDSTONE_WIRE)) {
-                            if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_NORTH).isConnected()) {
-                                dir = Direction.NORTH;
-                            }
-                            else if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_EAST).isConnected()) {
-                                dir = Direction.EAST;
-                            }
-                            else if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_SOUTH).isConnected()) {
-                                dir = Direction.SOUTH;
-                            }
-                            else if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_WEST).isConnected()) {
-                                dir = Direction.WEST;
-                            }
-                        }
-                        max = Math.max(max, dState.getWeakRedstonePower(world, dPos, dir) * 16);
-                    }
-                }
-                else {
-                    if ((dState.getBlock() instanceof CopperReadyDevice) &&
-                            ((!dState.isOf(ModBlocks.COPPER_WIRE) ||
-                                    (Direction.Type.VERTICAL.test(dir) ||
-                                            (!dState.get(CopperWire.VERTICAL) &&
-                                                    dState.get(propForDirection(dir)).isConnected()))))) {
-                        max = Math.max(max, CPtoRP(((CopperReadyDevice)dState.getBlock())
-                                .getCopperSignal(world, dPos, dDir, null)));
-                    }
-                    else {
-                        if (Direction.Type.VERTICAL.test(dir) && dState.isOf(Blocks.REDSTONE_WIRE)) {
-                            if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_NORTH).isConnected()) {
-                                dir = Direction.NORTH;
-                            }
-                            else if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_EAST).isConnected()) {
-                                dir = Direction.EAST;
-                            }
-                            else if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_SOUTH).isConnected()) {
-                                dir = Direction.SOUTH;
-                            }
-                            else if (dState.get(RedstoneWireBlock.WIRE_CONNECTION_WEST).isConnected()) {
-                                dir = Direction.WEST;
-                            }
-                        }
-                        max = Math.max(max, dState.getWeakRedstonePower(world, dPos, dir));
-                    }
-                }
+
+                int power = dState.isOf(Blocks.REDSTONE_WIRE)
+                        ? dState.get(POWER) << 4
+                        : dState.isOf(ModBlocks.COPPER_WIRE)
+                            ? dState.get(POWER) << 4 | dState.get(STEP)
+                            : 0;
+
+                max = Math.max(max, power);
             }
-            if (max != state.get(CPOWER)) {
-                state = state.with(CPOWER, max);
+
+            if (max != (state.get(POWER) << 4 | state.get(STEP))) {
+                state = state.with(POWER, max >> 4).with(STEP, max & 15);
                 world.setBlockState(pos, state, Block.NOTIFY_LISTENERS);
                 world.updateNeighborsAlways(pos, this);
             }

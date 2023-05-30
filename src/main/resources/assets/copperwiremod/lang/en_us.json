@@ -4,8 +4,8 @@
   "block.copperwiremod.copperwire.tooltip": "Use the top, bottom, left, right, or center to toggle connections",
   "block.copperwiremod.copper_psrc": "Copper Power Source",
   "block.copperwiremod.copper_psrc.tooltip": "Adjustable Copper Power and Redstone Power emitter",
-  "block.copperwiremod.copper_resistor": "Copper Resistor",
-  "block.copperwiremod.copper_resistor.tooltip": "Reduces copper value to the top of the next lower redstone value",
+  "block.copperwiremod.copper_diode": "Copper Diode",
+  "block.copperwiremod.copper_diode.tooltip": "Boosts the copper step value to 15 if the redstone value > 0",
   "block.copperwiremod.copper_light": "Copper Light",
   "block.copperwiremod.copper_light.tooltip": "Light with redstone power-selected color"
 }
