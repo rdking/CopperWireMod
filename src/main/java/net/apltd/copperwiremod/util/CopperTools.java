@@ -3,9 +3,11 @@ package net.apltd.copperwiremod.util;
 import net.minecraft.block.RedstoneWireBlock;
 import net.minecraft.block.enums.WireConnection;
 import net.minecraft.state.property.EnumProperty;
+import net.minecraft.state.property.IntProperty;
 import net.minecraft.util.math.Direction;
 
 public final class CopperTools {
+    public static final IntProperty CPOWER = IntProperty.of("cpower", 0, 240);
     public static int CPtoRP(int cp) {
         return (cp >> 4) + ((cp & 0x0f) > 0 ? 1 : 0);
     }

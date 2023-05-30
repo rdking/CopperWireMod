@@ -40,6 +40,10 @@ public class ModBlocks {
     public static final Block COPPER_LIGHT = registerBlock(CopperLight.BLOCK_NAME,
             new CopperLight(FabricBlockSettings.of(Material.REDSTONE_LAMP)), ItemGroup.REDSTONE);
 
+    public static final Block COPPER_SIGNALLOCK = registerBlock(CopperSignalLock.BLOCK_NAME,
+            new CopperSignalLock(FabricBlockSettings.of(Material.STONE)), ItemGroup.REDSTONE);
+
+
     private static void registerBlockItem(String name, Block block, ItemGroup group) {
         Registry.register(Registry.ITEM, new Identifier(CopperWireMod.MODID, name),
                 new BlockItem(block, new FabricItemSettings().group(group)));
