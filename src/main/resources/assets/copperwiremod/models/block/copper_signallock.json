@@ -3,7 +3,7 @@
 	"textures": {
 		"0": "copperwiremod:block/copperwire",
 		"2": "minecraft:block/smooth_stone",
-		"5": "copperwiremod:block/gate_plate",
+		"5": "copperwiremod:block/stone_gate_face",
 		"particle": "minecraft:block/smooth_stone"
 	},
 	"elements": [

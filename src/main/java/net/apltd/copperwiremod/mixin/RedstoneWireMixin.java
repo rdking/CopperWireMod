@@ -1,5 +1,6 @@
 package net.apltd.copperwiremod.mixin;
 
+import net.apltd.copperwiremod.CopperWireMod;
 import net.apltd.copperwiremod.block.ModBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -15,6 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class RedstoneWireMixin extends Block {
 	public RedstoneWireMixin(Settings settings) {
 		super(settings);
+		CopperWireMod.LOGGER.info("Registering RedstoneWireMixin...");
 	}
 
 	//Make sure redstone dust visibly tries to connect to copper wire.

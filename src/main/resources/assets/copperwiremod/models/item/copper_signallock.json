@@ -4,7 +4,7 @@
 		"0": "copperwiremod:block/copperwire",
 		"2": "minecraft:block/smooth_stone",
 		"4": "minecraft:block/redstone_torch_off",
-		"5": "copperwiremod:block/gate_plate",
+		"5": "copperwiremod:block/stone_gate_face",
 		"6": "minecraft:block/bedrock"
 	},
 	"elements": [

@@ -66,6 +66,7 @@ public class CopperWireEntity extends BlockEntity {
             if (changing) {
                 old = active;
                 current = active;
+                active = new CopperPower();
             }
             else {
                 active = current;

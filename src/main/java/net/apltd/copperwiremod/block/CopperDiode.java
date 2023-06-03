@@ -1,11 +1,13 @@
 package net.apltd.copperwiremod.block;
 
 import net.minecraft.block.*;
+import net.minecraft.block.enums.WireConnection;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -144,7 +146,9 @@ public class CopperDiode extends AbstractRedstoneGateBlock implements CopperRead
     @Override
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
         Direction facing = state.get(FACING);
-        if (!world.isClient && pos.offset(facing.getOpposite()).equals(sourcePos)) {
+        if (!world.isClient &&
+                (pos.offset(facing.getOpposite()).equals(sourcePos) ||
+                        pos.offset(facing.getOpposite()).down().equals(sourcePos))) {
             BlockState newState = update(world, state, pos);
             if (state != newState) {
                 world.setBlockState(pos, newState, Block.NOTIFY_LISTENERS);
@@ -158,7 +162,21 @@ public class CopperDiode extends AbstractRedstoneGateBlock implements CopperRead
         Direction srcDir = facing.getOpposite();
         BlockPos srcPos = pos.offset(srcDir);
         BlockState srcState = world.getBlockState(srcPos);
-        int power = srcState.getWeakRedstonePower(world, srcPos, srcDir);
+        boolean isDown = false;
+        if (srcState.isAir()) {
+            srcPos = srcPos.down();
+            srcState = world.getBlockState(srcPos);
+            isDown = true;
+        }
+        EnumProperty<WireConnection> prop = RedstoneWireBlock.DIRECTION_TO_WIRE_CONNECTION_PROPERTY.get(facing);
+        boolean isSolid = srcState.isSolidBlock(world, srcPos);
+        int power = isDown
+                ? (srcState.isOf(ModBlocks.COPPER_WIRE) && (srcState.get(prop) == WireConnection.UP))
+                    ? srcState.getWeakRedstonePower(world, srcPos, srcDir)
+                    : 0
+                : isSolid
+                    ? world.getReceivedStrongRedstonePower(srcPos)
+                    : srcState.getWeakRedstonePower(world, srcPos, srcDir);
         int step = power > 0 ? 15 : 0;
 
         return state.with(POWER, power).with(STEP, step);
