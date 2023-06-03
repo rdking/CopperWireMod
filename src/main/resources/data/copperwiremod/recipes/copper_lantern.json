@@ -2,26 +2,23 @@
   "type": "minecraft:crafting_shaped",
   "group": "copper_light_group",
   "pattern": [
-    "RQR",
-    "RCR",
-    "SSS"
+    " I ",
+    "IRI",
+    "CIC"
   ],
   "key": {
-    "Q": {
-      "item": "minecraft:quartz"
-    },
     "R": {
       "item": "minecraft:redstone_torch"
     },
     "C": {
       "item": "copperwiremod:copperwire"
     },
-    "S": {
-      "item": "minecraft:stone"
+    "I": {
+      "item": "minecraft:copper_ingot"
     }
   },
   "result": {
-    "item": "copperwiremod:copper_signallock",
+    "item": "copperwiremod:copper_lantern",
     "count": 1
   }
 }

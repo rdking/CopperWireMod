@@ -33,6 +33,7 @@ public class CopperLight extends Block {
     @Nullable
     @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
+        ctx.getWorld().createAndScheduleBlockTick(ctx.getBlockPos(), this, 2);
         return super.getPlacementState(ctx);
     }
 
