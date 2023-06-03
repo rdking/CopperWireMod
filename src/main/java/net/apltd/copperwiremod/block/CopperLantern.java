@@ -1,7 +1,5 @@
 package net.apltd.copperwiremod.block;
 
-import static net.apltd.copperwiremod.util.CopperTools.CPtoRP;
-import net.apltd.copperwiremod.util.CopperTools;
 import net.minecraft.block.*;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.server.world.ServerWorld;
@@ -24,24 +22,27 @@ import java.util.Arrays;
 public class CopperLantern extends Block implements CopperReadyDevice {
     public static final String BLOCK_NAME = "copper_lantern";
 
-    public static final IntProperty CPOWER = CopperTools.CPOWER;
+    public static final IntProperty POWER = RedstoneWireBlock.POWER;
+    public static final IntProperty STEP = IntProperty.of("step", 0, 15);
     public static final DirectionProperty FACING = DirectionProperty.of("facing",
             Arrays.stream(Direction.values()).filter((dir) -> dir != Direction.DOWN).toList());
 
     CopperLantern(AbstractBlock.Settings settings) {
         super(settings
-                .luminance((BlockState state) -> CPtoRP(state.get(CPOWER)))
+                .luminance((BlockState state) -> state.get(POWER))
         );
 
         setDefaultState(getStateManager().getDefaultState()
-                .with(CPOWER, 0)
+                .with(POWER, 0)
+                .with(STEP, 0)
                 .with(FACING, Direction.UP)
         );
     }
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(CPOWER);
+        builder.add(POWER);
+        builder.add(STEP);
         builder.add(FACING);
         super.appendProperties(builder);
     }
@@ -90,12 +91,24 @@ public class CopperLantern extends Block implements CopperReadyDevice {
     }
 
     @Override
-    public int getCopperSignal(BlockView world, BlockPos pos, Direction dir, Direction iDir) {
+    public int getCopperSignal(BlockView world, BlockPos pos, Direction dir) {
         BlockState state = world.getBlockState(pos);
         Direction facing = state.get(FACING);
+        int power = state.get(POWER);
+        int step = power == 0 ? 0 : state.get(STEP);
         return (dir != Direction.DOWN) && ((facing == Direction.DOWN) || (dir != facing.getOpposite()))
-                ? state.get(CPOWER)
+                ? power << 4 | step
                 : 0;
+    }
+
+    @Override
+    public int getPowerStep(BlockView world, BlockPos pos, Direction dir) {
+        BlockState state = world.getBlockState(pos);
+        Direction facing = state.get(FACING);
+        int power = state.get(POWER);
+        int step = power == 0 ? 0 : state.get(STEP);
+        return (dir != Direction.DOWN) && ((facing == Direction.DOWN) || (dir != facing.getOpposite()))
+                ? step : 0;
     }
 
     @Override
@@ -108,7 +121,7 @@ public class CopperLantern extends Block implements CopperReadyDevice {
     @Override
     public int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
         return (state.get(FACING) != direction)
-                ? CPtoRP(state.get(CPOWER))
+                ? state.get(POWER)
                 : 0;
     }
 
@@ -136,9 +149,9 @@ public class CopperLantern extends Block implements CopperReadyDevice {
     @Override
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
         Direction mount = state.get(FACING).getOpposite();
-        int power = 240 - world.getEmittedRedstonePower(pos.offset(mount), mount) * 16;
+        int power = 15 - world.getEmittedRedstonePower(pos.offset(mount), mount);
 
-        if (state.get(CPOWER) != power) {
+        if (state.get(POWER) != power) {
             world.createAndScheduleBlockTick(pos, this, 2);
         }
     }
@@ -146,10 +159,10 @@ public class CopperLantern extends Block implements CopperReadyDevice {
     @Override
     public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
         Direction mount = state.get(FACING).getOpposite();
-        int power = 240 - world.getEmittedRedstonePower(pos.offset(mount), mount) * 16;
+        int power = 15 - world.getEmittedRedstonePower(pos.offset(mount), mount);
 
-        if (state.get(CPOWER) != power) {
-            BlockState newState = state.with(CPOWER, power);
+        if (state.get(POWER) != power) {
+            BlockState newState = state.with(POWER, power).with(STEP, power > 0 ? 15 : 0);
             world.setBlockState(pos, newState, Block.NOTIFY_ALL);
         }
     }
