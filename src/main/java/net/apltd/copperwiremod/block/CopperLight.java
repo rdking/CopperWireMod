@@ -40,9 +40,16 @@ public class CopperLight extends Block {
     @Override
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
         if (!world.isClient) {
-            int power = world.getReceivedRedstonePower(pos);
-            if (power != state.get(COLOR)) {
-                world.createAndScheduleBlockTick(pos, this, 2);
+            if (canPlaceAt(state, world, pos)) {
+                int power = world.getReceivedRedstonePower(pos);
+                if (power != state.get(COLOR)) {
+                    world.createAndScheduleBlockTick(pos, this, 2);
+                }
+            }
+            else {
+                CopperLight.dropStacks(state, world, pos);
+                world.removeBlockEntity(pos);
+                world.removeBlock(pos, false);
             }
         }
     }

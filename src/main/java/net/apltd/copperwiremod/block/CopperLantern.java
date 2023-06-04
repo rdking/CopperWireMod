@@ -148,11 +148,20 @@ public class CopperLantern extends Block implements CopperReadyDevice {
 
     @Override
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
-        Direction mount = state.get(FACING).getOpposite();
-        int power = 15 - world.getEmittedRedstonePower(pos.offset(mount), mount);
+        if (!world.isClient()) {
+            if (canPlaceAt(state, world, pos)) {
+                Direction mount = state.get(FACING).getOpposite();
+                int power = 15 - world.getEmittedRedstonePower(pos.offset(mount), mount);
 
-        if (state.get(POWER) != power) {
-            world.createAndScheduleBlockTick(pos, this, 2);
+                if (state.get(POWER) != power) {
+                    world.createAndScheduleBlockTick(pos, this, 2);
+                }
+            }
+            else {
+                CopperLantern.dropStacks(state, world, pos);
+                world.removeBlockEntity(pos);
+                world.removeBlock(pos, false);
+            }
         }
     }
 

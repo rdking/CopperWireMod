@@ -133,24 +133,31 @@ public class CopperPowerSource extends Block implements CopperReadyDevice{
     @Override
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
         if (!world.isClient) {
-            boolean powered = false;
-            for (Direction dir: Direction.values()) {
-                BlockState dState = world.getBlockState(pos.offset(dir));
-                if (dState.isOf(Blocks.REDSTONE_BLOCK) ||
-                        (dState.isOf(Blocks.LEVER) && (
-                                ((dState.get(LeverBlock.FACE) == WallMountLocation.WALL) && (dState.get(LeverBlock.FACING) == dir)) ||
-                                ((dir == Direction.UP) && (dState.get(LeverBlock.FACE) == WallMountLocation.FLOOR)) ||
-                                ((dir == Direction.DOWN) && (dState.get(LeverBlock.FACE) == WallMountLocation.CEILING))
-                        ))
-                ) {
-                    powered |= dState.isOf(Blocks.REDSTONE_BLOCK) || dState.get(POWERED);
+            if (canPlaceAt(state, world, pos)) {
+                boolean powered = false;
+                for (Direction dir : Direction.values()) {
+                    BlockState dState = world.getBlockState(pos.offset(dir));
+                    if (dState.isOf(Blocks.REDSTONE_BLOCK) ||
+                            (dState.isOf(Blocks.LEVER) && (
+                                    ((dState.get(LeverBlock.FACE) == WallMountLocation.WALL) && (dState.get(LeverBlock.FACING) == dir)) ||
+                                            ((dir == Direction.UP) && (dState.get(LeverBlock.FACE) == WallMountLocation.FLOOR)) ||
+                                            ((dir == Direction.DOWN) && (dState.get(LeverBlock.FACE) == WallMountLocation.CEILING))
+                            ))
+                    ) {
+                        powered |= dState.isOf(Blocks.REDSTONE_BLOCK) || dState.get(POWERED);
+                    }
+                }
+
+                if (state.get(POWERED) != powered) {
+                    state = state.with(POWERED, powered);
+                    world.setBlockState(pos, state, Block.NOTIFY_ALL);
+                    world.updateNeighborsAlways(pos, this);
                 }
             }
-
-            if (state.get(POWERED) != powered) {
-                state = state.with(POWERED, powered);
-                world.setBlockState(pos, state, Block.NOTIFY_ALL);
-                world.updateNeighborsAlways(pos, this);
+            else {
+                CopperPowerSource.dropStacks(state, world, pos);
+                world.removeBlockEntity(pos);
+                world.removeBlock(pos, false);
             }
         }
     }

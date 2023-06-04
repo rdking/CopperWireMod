@@ -90,25 +90,32 @@ public class CopperPowerMeter extends Block {
     @Override
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
         if (!world.isClient) {
-            int max = 0;
+            if (canPlaceAt(state, world, pos)) {
+                int max = 0;
 
-            for (Direction dir : Direction.values()) {
-                BlockPos dPos = pos.offset(dir);
-                BlockState dState = world.getBlockState(dPos);
+                for (Direction dir : Direction.values()) {
+                    BlockPos dPos = pos.offset(dir);
+                    BlockState dState = world.getBlockState(dPos);
 
-                int power = dState.isOf(Blocks.REDSTONE_WIRE)
-                        ? dState.get(POWER) << 4
-                        : dState.isOf(ModBlocks.COPPER_WIRE)
+                    int power = dState.isOf(Blocks.REDSTONE_WIRE)
+                            ? dState.get(POWER) << 4
+                            : dState.isOf(ModBlocks.COPPER_WIRE)
                             ? dState.get(POWER) << 4 | dState.get(STEP)
                             : 0;
 
-                max = Math.max(max, power);
-            }
+                    max = Math.max(max, power);
+                }
 
-            if (max != (state.get(POWER) << 4 | state.get(STEP))) {
-                state = state.with(POWER, max >> 4).with(STEP, max & 15);
-                world.setBlockState(pos, state, Block.NOTIFY_LISTENERS);
-                world.updateNeighborsAlways(pos, this);
+                if (max != (state.get(POWER) << 4 | state.get(STEP))) {
+                    state = state.with(POWER, max >> 4).with(STEP, max & 15);
+                    world.setBlockState(pos, state, Block.NOTIFY_LISTENERS);
+                    world.updateNeighborsAlways(pos, this);
+                }
+            }
+            else {
+                CopperPowerMeter.dropStacks(state, world, pos);
+                world.removeBlockEntity(pos);
+                world.removeBlock(pos, false);
             }
         }
     }
