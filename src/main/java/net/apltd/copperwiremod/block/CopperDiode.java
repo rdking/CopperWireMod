@@ -166,10 +166,9 @@ public class CopperDiode extends AbstractRedstoneGateBlock implements CopperRead
     }
 
     private void updateNeighbors(World world, BlockPos pos, BlockState state) {
-        Direction facing = state.get(FACING);
         for (Direction dir: Direction.Type.HORIZONTAL) {
-            EnumProperty<WireConnection> prop = RedstoneWireBlock.DIRECTION_TO_WIRE_CONNECTION_PROPERTY.get(dir);
-            if ((dir != facing) && state.get(prop).isConnected()) {
+            BooleanProperty prop = propForDirection(state, dir);
+            if ((prop != null) && state.get(prop)) {
                 world.updateNeighborsExcept(pos.offset(dir), this, dir.getOpposite());
             }
         }
