@@ -90,11 +90,14 @@ public class CopperSignalLock extends AbstractRedstoneGateBlock implements Coppe
     @Override
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
         Direction facing = state.get(FACING);
-        if (!world.isClient && !pos.offset(facing).equals(sourcePos)) {
+        if (!world.isClient) {
             if (canPlaceAt(state, world, pos)) {
-                BlockState newState = update(world, state, pos);
-                if (state != newState) {
-                    world.createAndScheduleBlockTick(pos, this, 2);
+                if (!pos.offset(facing).equals(sourcePos)) {
+                    BlockState newState = update(world, state, pos);
+                    if (state != newState) {
+                        world.createAndScheduleBlockTick(pos, this, 2);
+                        world.updateNeighborsExcept(pos.offset(facing), this, facing.getOpposite());
+                    }
                 }
             }
             else {

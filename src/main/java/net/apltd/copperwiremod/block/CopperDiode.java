@@ -146,15 +146,16 @@ public class CopperDiode extends AbstractRedstoneGateBlock implements CopperRead
     @Override
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
         Direction facing = state.get(FACING);
-        if (!world.isClient &&
-                (pos.offset(facing.getOpposite()).equals(sourcePos) ||
-                        pos.offset(facing.getOpposite()).down().equals(sourcePos))) {
+        if (!world.isClient) {
             if (canPlaceAt(state, world, pos)) {
-                BlockState newState = update(world, state, pos);
-                if (state != newState) {
-                    world.setBlockState(pos, newState, Block.NOTIFY_ALL);
-                    world.updateNeighborsAlways(pos, this);
-                    updateNeighbors(world, pos, state);
+                if ((pos.offset(facing.getOpposite()).equals(sourcePos) ||
+                        pos.offset(facing.getOpposite()).down().equals(sourcePos))) {
+                        BlockState newState = update(world, state, pos);
+                    if (state != newState) {
+                        world.setBlockState(pos, newState, Block.NOTIFY_ALL);
+                        world.updateNeighborsAlways(pos, this);
+                        updateNeighbors(world, pos, state);
+                    }
                 }
             }
             else {
