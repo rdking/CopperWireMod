@@ -30,17 +30,16 @@ public class AbstractRedstoneGateBlockMixin extends HorizontalFacingBlock {
     )
     private void getPower(World world, BlockPos pos, BlockState state, CallbackInfoReturnable<Integer> cir) {
         Direction dir = world.getBlockState(pos).get(FACING);
-        Direction oDir = dir.getOpposite();
         BlockPos tPos = pos.offset(dir);
         BlockState tState = world.getBlockState(tPos);
 
         if (tState.isAir()) {
-            EnumProperty<WireConnection> prop = RedstoneWireBlock.DIRECTION_TO_WIRE_CONNECTION_PROPERTY.get(oDir);
+            EnumProperty<WireConnection> prop = RedstoneWireBlock.DIRECTION_TO_WIRE_CONNECTION_PROPERTY.get(dir);
             tPos = tPos.down();
             tState = world.getBlockState(tPos);
 
             if (tState.isOf(ModBlocks.COPPER_WIRE) && (tState.get(prop) == WireConnection.UP)) {
-                int i = tState.getWeakRedstonePower(world, tPos, oDir);
+                int i = tState.getWeakRedstonePower(world, tPos, dir);
                 cir.setReturnValue(i);
             }
         }
