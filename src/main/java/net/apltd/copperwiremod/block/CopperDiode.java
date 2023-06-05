@@ -27,7 +27,7 @@ import java.util.List;
 public class CopperDiode extends AbstractRedstoneGateBlock implements CopperReadyDevice {
     public static final String BLOCK_NAME = "copper_diode";
     public static final IntProperty POWER = RedstoneWireBlock.POWER;
-    public static final IntProperty STEP = CopperWire.STEP;
+    public static final IntProperty STEP = IntProperty.of("step", 0, 15);
     public static final BooleanProperty LEFT = BooleanProperty.of("left");
     public static final BooleanProperty FRONT = BooleanProperty.of("front");
     public static final BooleanProperty RIGHT = BooleanProperty.of("right");

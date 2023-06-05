@@ -1,5 +1,6 @@
 package net.apltd.copperwiremod.block;
 
+import net.apltd.copperwiremod.blockentity.CopperWireEntity;
 import net.minecraft.block.*;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.LivingEntity;
@@ -26,7 +27,7 @@ public class CopperPowerMeter extends Block {
     public static final String BLOCK_NAME = "copper_pmeter";
     public static final BooleanProperty MODE = BooleanProperty.of("mode");
     public static final IntProperty POWER = RedstoneWireBlock.POWER;
-    public static final IntProperty STEP = CopperWire.STEP;
+    public static final IntProperty STEP = IntProperty.of("step", 0, 15);
 
 
     public CopperPowerMeter(AbstractBlock.Settings settings) {
@@ -97,10 +98,12 @@ public class CopperPowerMeter extends Block {
                     BlockPos dPos = pos.offset(dir);
                     BlockState dState = world.getBlockState(dPos);
 
-                    int power = dState.isOf(Blocks.REDSTONE_WIRE)
-                            ? dState.get(POWER) << 4
-                            : dState.isOf(ModBlocks.COPPER_WIRE)
+                    int power = dState.isOf(ModBlocks.COPPER_WIRE)
+                            ? ((CopperWireEntity)world.getBlockEntity(dPos)).getMaxPowerOut(dState)
+                            : dState.isOf(ModBlocks.COPPER_LANTERN) || dState.isOf(ModBlocks.COPPER_DIODE) ||  dState.isOf(ModBlocks.COPPER_SIGNALLOCK)
                             ? dState.get(POWER) << 4 | dState.get(STEP)
+                            : dState.isOf(Blocks.REDSTONE_WIRE)
+                            ? dState.get(POWER) << 4
                             : 0;
 
                     max = Math.max(max, power);

@@ -46,7 +46,6 @@ public class CopperWire extends Block implements CopperReadyDevice, BlockEntityP
     public static final EnumProperty<WireConnection> SOUTH = RedstoneWireBlock.WIRE_CONNECTION_SOUTH;
     public static final EnumProperty<WireConnection> WEST = RedstoneWireBlock.WIRE_CONNECTION_WEST;
     public static final IntProperty POWER = RedstoneWireBlock.POWER;
-    public static final IntProperty STEP = IntProperty.of("step", 0, 15);
     public static final BooleanProperty VERTICAL = BooleanProperty.of("vertical");
     public static final BooleanProperty HOP = BooleanProperty.of("hop");
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
@@ -68,7 +67,6 @@ public class CopperWire extends Block implements CopperReadyDevice, BlockEntityP
                         .with(SOUTH, WireConnection.SIDE)
                         .with(WEST, WireConnection.NONE)
                         .with(POWER, 0)
-                        .with(STEP, 0)
                         .with(VERTICAL, false)
                         .with(HOP, false)
                         .with(WATERLOGGED, false)
@@ -88,7 +86,6 @@ public class CopperWire extends Block implements CopperReadyDevice, BlockEntityP
         builder.add(SOUTH);
         builder.add(WEST);
         builder.add(POWER);
-        builder.add(STEP);
         builder.add(VERTICAL);
         builder.add(HOP);
         builder.add(WATERLOGGED);
@@ -356,7 +353,7 @@ public class CopperWire extends Block implements CopperReadyDevice, BlockEntityP
         }
 
         int signal = cwTileEntity.getMaxPowerOut(newState);
-        newState = newState.with(POWER, signal >> 4).with(STEP, signal & 15);
+        newState = newState.with(POWER, signal >> 4);
 
         if (changed || (newState != state)) {
             world.setBlockState(pos, newState, Block.NOTIFY_ALL);

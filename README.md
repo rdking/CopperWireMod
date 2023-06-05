@@ -35,7 +35,10 @@ Copper Wire introduces a new state called a "step". When read from an active pow
 value is initialized to 15. Just as Redstone Dust loses 1 value point for each block that it carries a signal, Copper
 Wire loses 1 step value for each block traveled. When the step value reaches 0, the next block will see the step go back
 to 15 and the redstone value finally lose 1... unless losing 1 causes the redstone value to go to 0. In that case, step
-will also be zero.
+will also be zero. Since the step value on Copper Wire does not affect the displayed state, and there are multiple
+potential step values for each instance, the step value is not directly part of the state of the block. It is instead
+kept in an entity that manages the multiple values that the block can maintain. This keeps the number of states from 
+ballooning out of control and upping the memory requirements too much.
 
 Both Copper Wire and Diode allow you to select which directions are active. Simply tapping use on that quadrant of the
 block toggles the corresponding side on and off. With the Copper Wire, once all 4 sides are toggled on, tapping use on
@@ -46,13 +49,3 @@ vertical on that same side.
 The Copper Power Meter and Source have the ability to emit/display the signal in copper step units as well as redstone
 value units. The default is Redstone units. To display the signal in copper step units, put a switch on the side of the
 block and turn it on.
-
-## Memory Requirements
-Minimum Recommendation: 6GB JVM Heap
-
-Why so much? Well.... Copper Wire has 165888 possible states. Since the game engine pre-calculates a model for every
-state.... For comparison, Redstone dust has only 1296 states. While I could have simplified this by breaking the
-component into various fixed pieces, that would have resulted in 104 different wire types, each of which would have 1024
-states for a total of 106496 possible states. Sure, I could have gone that route, but I didn't think the inconvenience
-of having to hunt through 104 different wire types was worth the memory savings, never mind how much more code that
-would have required.

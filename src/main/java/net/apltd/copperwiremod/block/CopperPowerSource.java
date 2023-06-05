@@ -26,7 +26,7 @@ import java.util.List;
 public class CopperPowerSource extends Block implements CopperReadyDevice{
     public static final String BLOCK_NAME = "copper_psrc";
     public static final IntProperty POWER = RedstoneWireBlock.POWER;
-    public static final IntProperty STEP = CopperWire.STEP;
+    public static final IntProperty STEP = IntProperty.of("step", 0, 15);
     public static final BooleanProperty POWERED = LeverBlock.POWERED;
 
     public CopperPowerSource(AbstractBlock.Settings settings) {
