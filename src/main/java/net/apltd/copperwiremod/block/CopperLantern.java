@@ -89,6 +89,10 @@ public class CopperLantern extends Block implements CopperReadyDevice {
         BlockState blockState = world.getBlockState(blockPos);
         return blockState.isSideSolidFullSquare(world, blockPos, direction);
     }
+    @Override
+    public boolean emitsRedstonePower(BlockState state) {
+        return true;
+    }
 
     @Override
     public int getCopperSignal(BlockView world, BlockPos pos, Direction dir) {
@@ -107,7 +111,7 @@ public class CopperLantern extends Block implements CopperReadyDevice {
         Direction facing = state.get(FACING);
         int power = state.get(POWER);
         int step = power == 0 ? 0 : state.get(STEP);
-        return (dir != Direction.DOWN) && ((facing == Direction.DOWN) || (dir != facing.getOpposite()))
+        return (dir != Direction.DOWN) && ((facing == Direction.DOWN) || (dir != facing))
                 ? step : 0;
     }
 

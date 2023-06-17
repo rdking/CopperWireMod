@@ -1,34 +1,38 @@
 # CopperWire Mod
 This mod gives you several new additions to Minecraft's redstone system:
+![Copper Wire spanning image](./docs/images/2023-06-12_16.08.02.png)
 
 ## The New Components
 
-* **CopperWire** - The core component. This is a Redstone Dust compatible block that gives you 100% of the control over
-where it will connect. It also lets you allow 2 different signals to cross within the same block, as well as run a
-signal up a wall. The biggest feature, however, is that it will maintain the same redstone signal level for a full chunk
-before decaying. This allows for designing circuits that make valuable use of the redstone signal level. With this,
-analog circuits are now possible.This can also be used to carry the equivalent of 4 binary redstone signals on a single
-line! On top of all of that, Copper Wire can even be underwater!
+* ![Copper Wire image](./docs/images/CopperWire.png)**CopperWire** - The core component. This is a Redstone Dust
+compatible block that gives you 100% of the control over where it will connect. It also lets you allow 2 different
+signals to cross within the same block, as well as run a signal up a wall. The biggest feature, however, is that it will
+maintain the same redstone signal level for a full chunk before decaying. This allows for designing circuits that make
+valuable use of the redstone signal level. With this, analog circuits are now possible.This can also be used to carry
+the equivalent of 4 binary redstone signals on a single line! On top of all of that, Copper Wire can even be underwater!
 
-* **CopperLantern** - This works parallel to a torch, except that it can emit all redstone values. When mounted on a solid
-block, the torch gives off the inverse value of whatever power is supplied to the block.
+* ![Copper Lantern image](./docs/images/CopperLantern.png)**CopperLantern** - This works parallel to a torch, except
+that it can emit all redstone values. When mounted on a solid block, the torch gives off the inverse value of whatever
+power is supplied to the block.
 
-* **CopperLight** - Much like the Redstone Lamp, this light turns on when supplied with a non-zero redstone signal.
-However, the color produced depends on the redstone signal value. That makes this a 16 color light!
+* ![Copper Light image](./docs/images/CopperLight.png)**CopperLight** - Much like the Redstone Lamp, this light turns on
+when supplied with a non-zero redstone signal. However, the color produced depends on the redstone signal value. That
+makes this a 16 color light!
 
-* **CopperPowerSource** - Imagine wrapping a Redstone Block in copper wire and being able to control the redstone value
-it emits. That's precisely what this block is.
+* ![Copper Power Source image](./docs/images/CopperPowerSource.png)**CopperPowerSource** - Imagine wrapping a Redstone
+Block in copper wire and being able to control the redstone value it emits. That's precisely what this block is.
 
-* **CopperPowerMeter** - Just set this block down beside any piece of Redstone Dust or Copper Wire, and it will tell you
-what the current value is. It can even be placed on top of dust and wires to get the value.
+* ![Copper Power Meter image](./docs/images/CopperPowerMeter.png)**CopperPowerMeter** - Just set this block down beside
+any piece of Redstone Dust or Copper Wire, and it will tell you what the current value is. It can even be placed on top
+of dust and wires to get the value.
 
-* **CopperDiode** - A Redstone Repeater is great for boosting the redstone value to 15. In the same way, the Copper Diode
-boosts the signal being carried without modifying the redstone value so that copper wire can carry the signal for
-another chunk.
+* ![Copper Diode image](./docs/images/CopperDiode.png)**CopperDiode** - A Redstone Repeater is great for boosting the
+redstone value to 15. In the same way, the Copper Diode boosts the signal being carried without modifying the redstone
+value so that copper wire can carry the signal for another chunk.
 
-* **CopperSignalLock** - This is a single component latch designed after the repeater, only in reverse and with the
-ability to preserve whatever signal state it is fed. Feeding any non-zero input into either side will enable the
-CopperSignalLock to store the signal state at it's input.
+* ![Copper Signal Lock image](./docs/images/CopperSignalLock.png)**CopperSignalLock** - This is a single component latch
+designed after the repeater, only in reverse and with the ability to preserve whatever signal state it is fed. Feeding
+any non-zero input into either side will enable the CopperSignalLock to store the signal state at it's input.
 
 ## How It Works
 Copper Wire introduces a new state called a "step". When read from an active power source or redstone gate, this step
